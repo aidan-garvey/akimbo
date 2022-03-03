@@ -40,6 +40,15 @@ CIN_TRAIN_INIT:
     ; set VScroll to 48 for plane A, 0 for plane B
     MOVE.L  #$00300000, SCROLL_Y
     ; TODO: if necessary, clear BUFF_HSCROLL
+
+    ; clear BUFF_PLANE
+    LEA.L   BUFF_PLANE, a0
+    MOVEQ   #0, d0
+
+    MOVE.W  #$400, d1
+@CIN_TRAIN_INIT_CLEAR:
+    MOVE.L  d0, (a0)+
+    DBRA    d1, @CIN_TRAIN_INIT_CLEAR
     
     RTS
 
@@ -76,16 +85,8 @@ CIN_TRAIN_1:
         MOVE.L  (a2)+, (a0)+
         MOVE.L  (a2)+, (a0)+
         MOVE.L  (a2)+, (a0)+
-        ; 10 blank tiles (5 longs)
-        ; this takes the same amount of ROM as a loop, and it's faster
-        ; MOVE.L  d1, (a0)+
-        ; MOVE.L  d1, (a0)+
-        ; MOVE.L  d1, (a0)+
-        ; MOVE.L  d1, (a0)+
-        ; MOVE.L  d1, (a0)+
 
         ; ** SECOND ROW **
-        ; ADD.L   #$60, a0    ; jump to next row in buffer
         LEA.L   BUFF_TRAINCAR_4+$80, a0
         ; need 1 SIDE_LEFT and 5 FILLs
         MOVE.L  d2, (a0)+   ; side, 1 fill
@@ -96,14 +97,7 @@ CIN_TRAIN_1:
         MOVE.L  (a2)+, (a0)+
         MOVE.W  (a2)+, (a0)+
 
-        ; 7 blank tiles
-        ; MOVE.L  d1, (a0)+
-        ; MOVE.L  d1, (a0)+
-        ; MOVE.L  d1, (a0)+
-        ; MOVE.W  d1, (a0)+
-
         ; ** THIRD ROW **
-        ; ADD.L   #$60, a0
         LEA.L   BUFF_TRAINCAR_4+$100, a0
         ; need 1 SIDE_LEFT and 6 FILLs
         MOVE.L  d2, (a0)+   ; side, 1 fill
