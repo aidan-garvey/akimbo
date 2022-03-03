@@ -1,0 +1,56 @@
+1. Enable dma
+2. Reg 15 should already have increment value (2)
+3. Transfer DMA size to reg 19, 20
+4. Transfer DMA source and DMA mode to reg 21-23
+	- in this case, DMA mode will always be memory-to-VRAM, so DMA mode isn't discussed
+5. Set dest address
+(VDP begins)
+6. WAITDMA, then disable (unless done automatically)
+
+When writing to a register:
+	CTRL[7..0] = Register Data
+	CTRL[12..8] = Register No.
+	CTRL[15..13] = %100
+
+1. Enable DMA - Set bit 4 (aka M1) in reg #1 to 1
+	- this should be done outside of subroutine
+	Write word to VDP_CTRL:
+	%1000 0001 - write to register 1
+	%0111 0100 - %0, display on, v-interrupt on, dma on, v28 cell, %100
+
+2. Should require no action
+
+3. Transfer DMA Size - Reg 19 gets lower byte of size, Reg 20 gets upper byte
+	Write word to VDP_CTRL:
+	%1001 0011 - write to register 19
+	(lower byte of size)
+
+	Write word to VDP_CTRL:
+	%1001 0100 - write to reg 20
+	(upper byte of size)
+
+4. Transfer DMA Source Address - Reg 21 gets bits 1..8, Reg 22 gets 9..16, Reg 23 gets 17..23 (bit 7 must be 0)
+	Write word:
+	%1001 0101 - write to reg 21
+	(source 8..1)
+
+	Write word:
+	%1001 0110 - write to 22
+	(source 16..9)
+
+	Write word:
+	%1001 0111 - write to 23
+	%0, (source 23..17)
+
+
+5. Set DMA Dest Address - Write to VDP_CTRL twice (2 words):
+	- first write:
+		CTRL [13..0] = Dest address [13..0]
+		CTRL [15,14] = RAM code [1,0]
+	- second write:
+		CTRL [1,0] = Dest address [15,14]
+		CTRL [4] = RAM code [2]
+		CTRL [7] = 1
+		Rest of CTRL = 0
+
+6. WAITDMA, then disable

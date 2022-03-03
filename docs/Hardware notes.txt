@@ -1,0 +1,1 @@
+for DMA, size of data is in WORDS

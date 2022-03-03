@@ -1,0 +1,1 @@
+- lightning effect: have everything except the background briefly change to an all-black colour palette, and have the background change to all-white
