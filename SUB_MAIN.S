@@ -33,7 +33,7 @@ BUFF_TRAINCAR_4 = BUFF_PLANE+$C60
 
 ; Initialize memory for cinematic
 CIN_TRAIN_INIT:
-    MOVE.L  #CIN_TRAIN_1, MAIN_VECTOR
+    MOVE.L  #CIN_TRAIN_WAIT_1, MAIN_VECTOR
     MOVE.L  #0, CIN_TRAIN_TIMER
     ; Full VScroll, Cell-by-cell HScroll
     VDP_REG 11, %00000010
@@ -52,6 +52,21 @@ CIN_TRAIN_INIT:
     
     RTS
 
+; -------------------------------------
+; HOLD FOR 1 SEC BEFORE ANIMATION PLAYS
+CIN_TRAIN_WAIT_1:
+    ADD.W   #1, CIN_TRAIN_TIMER
+    CMPI.W  #$60, CIN_TRAIN_TIMER
+    BLT     @TRAIN_WAIT_1_RET
+
+    MOVE.W  #0, CIN_TRAIN_TIMER
+    MOVE.L  #CIN_TRAIN_1, MAIN_VECTOR
+
+@TRAIN_WAIT_1_RET
+    RTS
+
+; -------------------------------
+; PAN CAMERA DOWN TO TRAIN TRACKS
 CIN_TRAIN_1:
     ; increment timer
     ADD.W   #1, CIN_TRAIN_TIMER
@@ -65,7 +80,7 @@ CIN_TRAIN_1:
 
         ; once we're done scrolling, clear timer and switch to stage 2
         CLR.W   CIN_TRAIN_TIMER
-        MOVE.L  #CIN_TRAIN_2, MAIN_VECTOR
+        MOVE.L  #CIN_TRAIN_WAIT_2, MAIN_VECTOR
 
         ; **** set up stage 2 by loading in front of train ****
 
@@ -190,26 +205,129 @@ CIN_TRAIN_1:
 
 @CIN_TRAIN_1_RETURN:
     RTS
+
+; -----------------------------------------------------------------------
+; wait for train to pass screen, camera shake
+; camera shake will be moving the vertical scroll up+down by 1 unit
+; will go from changing every 16 frames to every 4 frames over 128 frames
+    ; 1/16 for 32 frames
+    ; 2/16 for 32 frames
+    ; 3/16 for 32 frames
+    ; 4/16 for 32 frames
+CIN_TRAIN_WAIT_2:
+    ; increment timer
+    MOVE.W  CIN_TRAIN_TIMER, d0
+    ADDQ    #1, d0
+    ; if animation is done, get next stage ready
+    CMPI.W  #$80, d0
+    BGE     @TRAIN_WAIT_2_NEXT
+
+        ; save new timer
+        MOVE.W  d0, CIN_TRAIN_TIMER
+
+        ; pseudocode for what the following code will do:
+
+        ; if timer <= 32 && timer & $1F == 0
+            ; plane_y += timer & $20 ? 1, -1
+
+        ; elif timer <= 64 && timer & $F == 0
+            ; plane_y += timer & $10 ? 1, -1
+
+        ; elif timer <= 96 && timer & $7 == 0
+            ; plane_y += timer & $8 ? 1, -1
+
+        ; elif timer & $3 == 0
+            ; plane_y += timer & $4 ? 1, -1
+
+        ; we will bitshift the timer to the left so bit checks can always be the same
+        ; if timer & %0010 0000, shift once
+        ; if timer & %0100 0000, shift twice
+        ; if timer & %0110 0000, shift 3x
+        MOVE.W  d0, d1
+        LSR.W   #5, d1  ; d1[1..0] = d0[6..5]
+        ; MOVE.W  d0, d2
+        ; LSL.W   d1, d2
+        LSL.W   d1, d0
+        ; result in d0:
+        ; %00Nx xxxx -> %00 00Nx xxxx
+        ; %001N xxxx -> %00 01Nx xxx0
+        ; %010x Nxxx -> %01 0xNx xx00
+        ; %011x xNxx -> %11 xxNx x000
+        ; N: bit we need to check to determine motion
+
+        ; if d0 & $1F == 0, shake screen
+        ; MOVE.W  d2, d1
+        MOVE.W  d0, d1
+        ANDI.W  #$1F, d1
+        BNE     @TRAIN_WAIT_2_RET
+
+        LEA.L   SCROLL_Y, a0
+        MOVE.L  (a0), d1
+        ; use bit d0[5] to check motion
+        ; BTST    #5, d2
+        BTST    #5, d0
+        BEQ     @W2_SHAKE_CAM_DOWN
+            ; shake cam up:
+            ADD.L   #$10001, d1
+            MOVE.L  d1, (a0)
+            BRA     @TRAIN_WAIT_2_RET
+@W2_SHAKE_CAM_DOWN:
+            SUB.L   #$10001, d1
+            MOVE.L  d1, (a0)
+            BRA     @TRAIN_WAIT_2_RET
+
+        
+
+@TRAIN_WAIT_2_NEXT:
+    CLR.W   CIN_TRAIN_TIMER
+    MOVE.L  #CIN_TRAIN_2, MAIN_VECTOR
+
+@TRAIN_WAIT_2_RET:
+    RTS
     
+; -----------------------------------------------------------
+; SCROLL TRAIN PAST SCREEN, KEEP SHAKING CAMERA, LOAD IN CARS
+; TODO: depending on timer, load a new train car in
 CIN_TRAIN_2:
-    ; TODO: depending on timer, load a new train car in
+    MOVE.L  CIN_TRAIN_TIMER, d0
+    ADDQ    #1, d0  ; timer will be 1 on first iteration
+    MOVE.L  d0, CIN_TRAIN_TIMER
+    ; TODO: compare timer, load next stage of animation if applicable
     
     ; scroll the train (plane A) to the right
     LEA.L   BUFF_HSCROLL, a0
     MOVE.W  (a0),d1
-    ADD.W   #14,d1
-    MOVE.W  #27,d0
-@CIN_TRAIN_2_LOOP:
+    ADD.W   #32,d1
+    MOVE.W  #27,d2
+@CIN_TRAIN_2_HLOOP:
         MOVE.W  d1, (a0)+
         SUB.W   #1, d1      ; slant train to the right to create speed effect
-        DBRA    d0, @CIN_TRAIN_2_LOOP
+        DBRA    d2, @CIN_TRAIN_2_HLOOP
     
-    ; scroll the tracks (plane B) to the left
-    ;ADD.L   #52, a0
-    ;MOVE.W  (a0),d1
-    ;SUB.W   #14,d1
-    ;MOVE.W  d1, (a0)+
-    ;MOVE.W  d1, (a0)+
+    ; if timer % 4 == 0, shake cam depending on timer & 4
+    MOVE.W  d0, d1
+    ANDI.W  #3, d1
+    BNE     @CIN_TRAIN_2_RET
+        LEA.L   SCROLL_Y, a0
+        MOVE.L  (a0), d1
+        ; if timer & 4 == 1, shake down
+        BTST    #2, d0
+        BNE     @2_SHAKE_CAM_DOWN
+            ; shake up
+            ADD.L   #$10001, d1
+            MOVE.L  d1, (a0)
+            BRA     @CIN_TRAIN_2_RET
+@2_SHAKE_CAM_DOWN:
+            ; shake down
+            SUB.L   #$10001, d1
+            MOVE.L  d1, (a0)
+            BRA     @CIN_TRAIN_2_RET
+
+
     
+@CIN_TRAIN_2_NEXT:
+    ; todo: load next stage of animation
+
+@CIN_TRAIN_2_RET:
     RTS
     
