@@ -31,6 +31,8 @@ BUFF_TRAINCAR_2 = BUFF_PLANE+$C20
 BUFF_TRAINCAR_3 = BUFF_PLANE+$C40
 BUFF_TRAINCAR_4 = BUFF_PLANE+$C60
 
+TRAIN_MAXSPEED = 32
+
 ; Initialize memory for cinematic
 CIN_TRAIN_INIT:
     MOVE.L  #CIN_TRAIN_WAIT_1, MAIN_VECTOR
@@ -245,8 +247,6 @@ CIN_TRAIN_WAIT_2:
         ; if timer & %0110 0000, shift 3x
         MOVE.W  d0, d1
         LSR.W   #5, d1  ; d1[1..0] = d0[6..5]
-        ; MOVE.W  d0, d2
-        ; LSL.W   d1, d2
         LSL.W   d1, d0
         ; result in d0:
         ; %00Nx xxxx -> %00 00Nx xxxx
@@ -256,7 +256,6 @@ CIN_TRAIN_WAIT_2:
         ; N: bit we need to check to determine motion
 
         ; if d0 & $1F == 0, shake screen
-        ; MOVE.W  d2, d1
         MOVE.W  d0, d1
         ANDI.W  #$1F, d1
         BNE     @TRAIN_WAIT_2_RET
@@ -276,8 +275,6 @@ CIN_TRAIN_WAIT_2:
             MOVE.L  d1, (a0)
             BRA     @TRAIN_WAIT_2_RET
 
-        
-
 @TRAIN_WAIT_2_NEXT:
     CLR.W   CIN_TRAIN_TIMER
     MOVE.L  #CIN_TRAIN_2, MAIN_VECTOR
@@ -287,17 +284,42 @@ CIN_TRAIN_WAIT_2:
     
 ; -----------------------------------------------------------
 ; SCROLL TRAIN PAST SCREEN, KEEP SHAKING CAMERA, LOAD IN CARS
-; TODO: depending on timer, load a new train car in
 CIN_TRAIN_2:
+    ; increment timer
     MOVE.L  CIN_TRAIN_TIMER, d0
-    ADDQ    #1, d0  ; timer will be 1 on first iteration
+    ADDQ    #1, d0
     MOVE.L  d0, CIN_TRAIN_TIMER
-    ; TODO: compare timer, load next stage of animation if applicable
+    ; compare timer, load next stage of animation if applicable
+    CMPI.W  #512/TRAIN_MAXSPEED, d0
+    BGT     @CIN_TRAIN_2_NEXT
     
+    ; every 128 pixels of HSCROLL, load in a new traincar
+    MOVE.W  d0, d1
+    ANDI.B  #(128/TRAIN_MAXSPEED)-1, d1
+    BNE     @CIN_TRAIN_2_HSCROLL
+
+        ; which car we load will depend on bits [3..2] of the timer
+        MOVEQ   #0, d1
+        MOVE.W  d0, d1
+        LSR.W   #2, d1
+        ; need to convert d1 = {%01, %10, %11, %00} -> dn = {$40, $20, $0, $60}
+        ; NOT:
+        ; d1 = {%01, %10, %11, %00} -> d1 = {%10, %01, %00, %11}
+        ; LSL by 5
+        ; d1 = {%10, %01, %00, %11} -> d1 = {$40, $20, $0, $60}
+
+        ; (note %01 occurs first, not %00, because timer is incremented on the first frame)
+        
+        NOT.W   d1
+        ANDI.W  #%11, d1
+        LSL.W   #5, d1
+        JSR     @CIN_TRAIN_2_LOAD_CAR
+
+@CIN_TRAIN_2_HSCROLL:
     ; scroll the train (plane A) to the right
     LEA.L   BUFF_HSCROLL, a0
     MOVE.W  (a0),d1
-    ADD.W   #32,d1
+    ADD.W   #TRAIN_MAXSPEED,d1
     MOVE.W  #27,d2
 @CIN_TRAIN_2_HLOOP:
         MOVE.W  d1, (a0)+
@@ -323,11 +345,115 @@ CIN_TRAIN_2:
             MOVE.L  d1, (a0)
             BRA     @CIN_TRAIN_2_RET
 
-
     
 @CIN_TRAIN_2_NEXT:
     ; todo: load next stage of animation
+    MOVE.L  #@CIN_TRAIN_2_RET, MAIN_VECTOR
 
 @CIN_TRAIN_2_RET:
     RTS
+
+; LOAD A TRAIN CAR INTO BUFF_PLANE
+; d1.B contains offset from BUFF_TRAINCAR_1
+@CIN_TRAIN_2_LOAD_CAR:
+    LEA.L   BUFF_TRAINCAR_1, a0
+    ADD.L   d1, a0
+    LEA.L   TRAIN_TOP_LEFT, a1
+
+    MOVEQ   #$60, d4    ; d4 will hold the offset to jump to the next row
+
+    ; ** FIRST ROW **
+
+    ; load TOP_LEFT
+    MOVE.W  (a1)+, (a0)+
+    ; need 13 of TOP_ROOF
+    MOVE.W  (a1), d1
+    SWAP    d1
+    MOVE.W  (a1)+, d1
+
+    ; do 12 in a loop
+    MOVEQ   #5, d3
+@LOAD_CAR_ROOF_LOOP:
+        MOVE.L  d1, (a0)+
+        DBRA    d3, @LOAD_CAR_ROOF_LOOP
+    ; do last copy of TOP_ROOF
+    MOVE.W  d1, (a0)+
+    ; do TOP_RIGHT
+    MOVE.W  (a1)+, (a0)+
+    ; do blank tile
+    MOVE.W  #0, (a0)+
+
+    ; jump to next row
+    ADD.L   d4, a0
+
+    ; ** ROWS 2-6 **
+    MOVEQ   #4, d5
+@LOAD_CAR_MIDROW_LOOP:
+        LEA.L   TRAIN_MID_LEFT, a1
+        MOVE.W  (a1)+, (a0)+
+        MOVE.W  (a1), d1
+        SWAP    d1
+        MOVE.W  (a1)+, d1
+        ; do 12 in a loop
+        MOVEQ   #5, d3
+@LOAD_CAR_MIDMID_LOOP:
+            MOVE.L  d1, (a0)+
+            DBRA    d3, @LOAD_CAR_MIDMID_LOOP
+        ; last copy of MID_MID
+        MOVE.W  d1, (a0)+
+        ; do MID_RIGHT
+        MOVE.W  (a1)+, (a0)+
+        ; blank tile
+        MOVE.W  #0, (a0)+
+
+        ; jump to next row
+        ADD.L   d4, a0
+        DBRA    d5, @LOAD_CAR_MIDROW_LOOP
+
+    ; ** ROW 7 **
+    ; need 15 copies of caution stripes
+    MOVE.W  (a1), d1
+    SWAP    d1
+    MOVE.W  (a1)+, d1
+
+    ; do 14 in a loop
+    MOVEQ   #6, d3
+@LOAD_CAR_CAUTION_LOOP:
+        MOVE.L  d1, (a0)+
+        DBRA    d3, @LOAD_CAR_CAUTION_LOOP
+    ; do last copy
+    MOVE.W  d1, (a0)+
+    ; copy connector
+    MOVE.W  (a1)+, (a0)+
+
+    ; jump to next row
+    ADD.L   d4, a0
+
+    ; ** EIGHTH ROW **
+    ; left wheel
+    MOVE.L  (a1)+, (a0)+
+    MOVE.L  (a1)+, (a0)+
+
+    MOVEQ   #14, d4
+    ADD.L   d4, a0
+
+    ; right wheel
+    MOVE.L  (a1)+, (a0)+
+    MOVE.L  (a1)+, (a0)+
     
+    ; blank tile
+    MOVE.W  #0, (a0)+
+
+    ; queue a DMA transfer
+    PUSH    d0
+
+    MOVE.L  #BUFF_PLANE, d0
+    MOVE.W  #$800, d1
+    MOVE.W  #VRAM_SCROLLA, d2
+    LEA.L   DMA_QUEUE, a0
+
+    JSR     AddToDMAQueue
+
+    POP     d0
+
+    RTS
