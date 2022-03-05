@@ -1,0 +1,4 @@
+
+
+LVL_TRAIN_INIT:
+    RTS

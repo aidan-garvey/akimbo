@@ -44,11 +44,6 @@
 ; DMA ROUTINES
 ; ************
     INCLUDE DMA_ROUTINES.S
-
-; *********************
-; MAIN LOOP SUBROUTINES
-; *********************
-    INCLUDE SUB_MAIN.S
     
 ; *******************
 ; GAME INITIALIZATION
@@ -197,6 +192,18 @@ CopyChar:
     MOVE.L  (a0)+, (a1)
     RTS
     
+; **********************
+; GAME STATE SUBROUTINES
+; **********************
+    ; Constants for train level
+    INCLUDE EQU_TRAIN.S
+    ; Helpful subroutines for train level
+    INCLUDE SUB_TRAIN.S
+    ; Cinematic for train arriving
+    INCLUDE CIN_TRAIN.S
+    ; Gameplay loop for train level
+    INCLUDE LVL_TRAIN.S
+
 ; ******
 ; ASSETS
 ; ******
