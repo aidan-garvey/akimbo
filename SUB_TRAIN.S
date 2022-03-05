@@ -40,10 +40,10 @@ SUB_TRAIN_LOAD_CAR:
     MOVE.W  (a1)+, (a0)+
 
     ; DEBUG: place tile in top-left depending on which car this is
-    LSL.W   #8, d1      ; d1 will be colour palette...
-    ADD.W   #$0105, d1  ; ...for TRAIN_STRIPES pattern
-    MOVE.W  d1, -(a0)
-    ADDQ    #2, a0
+    ;LSL.W   #8, d1      ; d1 will be colour palette...
+    ;ADD.W   #$0105, d1  ; ...for TRAIN_STRIPES pattern
+    ;MOVE.W  d1, -(a0)
+    ;ADDQ    #2, a0
 
     ; need 13 of TOP_ROOF
     MOVE.W  (a1), d1
