@@ -415,8 +415,7 @@ ENGINE_ROW_8:
     ; 1 blank char
 
 
-; -------------
-; COLLISION MAP
-; -------------
-
+; --------------
+; COLLISION MAPS
+; --------------
 

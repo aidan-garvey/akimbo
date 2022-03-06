@@ -51,6 +51,16 @@
 ; Occurs at end of INIT_PROGRAM, before VBLANK
 ; routines are activated
 GAME_INIT:
+    ; copy player palette to spot 0
+    LEA.L   PLAYER_PALETTE, a0
+    MOVEQ   #0, d0
+    JSR     LOAD_PALETTE
+
+    ; copy system palette to spot 1
+    LEA.L   SYSTEM_PALETTE, a0
+    MOVEQ   #1, d0
+    JSR     LOAD_PALETTE
+
     ; copy train palette to spot 2
     LEA.L   TRAIN_PAL, a0
     MOVEQ   #2, d0
@@ -59,15 +69,6 @@ GAME_INIT:
     ; copy landscape palette to spot 3
     LEA.L   LAND_NIGHT_PAL, a0
     MOVEQ   #3, d0
-    JSR     LOAD_PALETTE
-    
-    ; copy system palette to other 2 spots
-    LEA.L   SYSTEM_PALETTE, a0
-    MOVEQ   #0, d0
-    JSR     LOAD_PALETTE
-    
-    LEA.L   SYSTEM_PALETTE, a0
-    MOVEQ   #1, d0
     JSR     LOAD_PALETTE
     
     JSR     DUMP_PALETTES
@@ -152,12 +153,42 @@ GAME_INIT:
     JSR     DMADump
     
     ; load train graphics into VRAM starting
-    ; at cell $100 (address $2000)
+    ; at cell $101 (address $2020)
     MOVE.L  #TRAIN_CHARS, d0
     MOVE.W  #16*$1D, d1
     MOVE.W  #$2020, d2
     
     JSR     DMADump
+
+    ; load player graphics into VRAM starting
+    ; at cell $1 (address $20)
+    LEA.L   VDP_DATA, a1
+    VDP_ACCESS VDP_W_VRAM, $0020
+    
+    LEA.L   PLAYER_RED, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_RED, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_RED, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_RED, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_BLUE, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_BLUE, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_BLUE, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_BLUE, a0
+    JSR     CopyChar
+
+    ; Initialize Player's sprite
+    LEA.L   BUFF_SPRITES, a0
+    MOVE.W  #128, (a0)+     ; vertical pos
+    MOVE.W  #$0700, (a0)+   ; 4x2, link = 0
+    MOVE.W  #$0001, (a0)+   ; pal 0, no flip, pattern #1
+    MOVE.W  #128, (a0)+     ; horizontal pos
+
     
     ; Set up first subroutine to run in main loop
     ; (this subroutine also changes which code will execute every frame,
@@ -207,6 +238,8 @@ CopyChar:
 ; ******
 ; ASSETS
 ; ******
+    ; Player patterns & palette
+    INCLUDE PLAYERGFX.S
     ; Colour palette
     INCLUDE PALETTES.S
     ; Train patterns & palette
