@@ -15,12 +15,17 @@ STACK_END = $FF0400     ; 1024B stack
 VBLANKON = $FF0400      ; WORD: Has VBlank routine finished? (TO-TRY: BYTE)
 VBVECTOR = $FF0402      ; LONG: Location of VBlank routine
 
-; TODO: rewrite joypad code so result fits in WORD, and it is still easy to check 3/6 button
-    ; currently, the MSB of the LONG is 1 for 6b, 0 for 3b. Rearranging could fit data in WORD and still have 1/0 as MSB
-JOY1 = $FF0406          ; LONG: Data from player 1
-JOY1_OLD = $FF040A      ; LONG: JOY1 from previous frame
-JOY2 = $FF040E          ; LONG: Data from player 2
-JOY2_OLD = $FF0412      ; LONG: JOY2 from previous frame
+;JOY1 = $FF0406          ; LONG: Data from player 1
+;JOY1_OLD = $FF040A      ; LONG: JOY1 from previous frame
+;JOY2 = $FF040E          ; LONG: Data from player 2
+;JOY2_OLD = $FF0412      ; LONG: JOY2 from previous frame
+JOY1 = $FF0406      ; WORD: Joypad data for player 1
+JOY2 = $FF0408      ; WORD: Joypad data for player 2
+JOY1_OLD = $FF040A  ; WORD: JOY1 from previous frame
+JOY2_OLD = $FF040C  ; WORD: JOY2 from previous frame
+
+; $FF040E - $FF0416: RESERVED
+    ; may be needed for reworks of controller input handling
 
 ; $FF0416: WORD OF MARGIN, DMA routine writes junk here
 CURR_DMA_SRC = $FF0418  ; 3B: Source Address register writes for current DMA command
