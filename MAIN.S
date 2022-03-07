@@ -44,6 +44,11 @@
 ; DMA ROUTINES
 ; ************
     INCLUDE DMA_ROUTINES.S
+
+; ***********************
+; JOYPAD INPUT SUBROUTINE
+; ***********************
+    INCLUDE READJOY.S
     
 ; *******************
 ; GAME INITIALIZATION

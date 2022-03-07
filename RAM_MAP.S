@@ -42,11 +42,20 @@ BUFF_HSCROLL = $FF1B30  ; Horizontal Scroll buffer (cell-by-cell)
                         ; 28 rows * 2 planes * 2 bytes = 112B
 BUFF_HSCROLLA = $FF1B30
 BUFF_HSCROLLB = $FF1B68
-; $FF1BA0
+BUFF_COLLISION = $FF1BA0; $100B: collision data for Scroll A
+; $FF1CA0:
 ; FREE SPACE
-; $FF1C00: Space for cinematics variables (tentative)
+; $FF1D00: Space for cinematics variables (tentative)
 ; $FF2000:
 MAIN_VECTOR = $FF2000   ; 4B: Address of current main loop subroutine
-SCROLL_Y = $FF2004      ; 4B: Y scroll values for each playfield
-SCROLLA_Y = $FF2004
-SCROLLB_Y = $FF2006
+GAME_TICK = $FF2004     ; 4B: Game tick (frame counter)
+SCROLL_Y = $FF2008      ; 4B: Y scroll values for each playfield
+SCROLLA_Y = $FF2008
+SCROLLB_Y = $FF200A
+
+PLAYER1_X = $FF3000     ; 2B: Player 1's X position
+PLAYER1_Y = $FF3002     ; 2B: Player 1's Y position
+PLAYER1_VX = $FF3004    ; 2B: Player 1's X velocity
+PLAYER1_VY = $FF3006    ; 2B: Player 1's Y velocity
+PLAYER1_FLAGS = $FF3008 ; 2B: Flags for P1
+    ; {onGround, xxx, direction, xxx xxxx xxxx}

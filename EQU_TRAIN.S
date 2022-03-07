@@ -1,6 +1,6 @@
-CIN_TRAIN_TIMER = $FF1C00
-CIN_TRAIN_VEL = $FF1C04     ; velocity of train
-CIN_BACK_VEL = $FF1C06      ; velocity of background
+CIN_TRAIN_TIMER = GAME_TICK
+CIN_TRAIN_VEL = $FF1D00     ; velocity of train
+CIN_BACK_VEL = $FF1D02      ; velocity of background
 ; offsets in BUFF_PLANE for top-left of each
 ; train car (add $80 to jump a whole row)
 BUFF_TRAINCAR_1 = BUFF_PLANE+$C00

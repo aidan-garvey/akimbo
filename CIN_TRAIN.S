@@ -150,13 +150,6 @@ CIN_TRAIN_INIT:
     LEA.L   PLAYER_BLUE, a0
     JSR     CopyChar
 
-    ; Initialize Player's sprite
-    LEA.L   BUFF_SPRITES, a0
-    MOVE.W  #128, (a0)+     ; vertical pos
-    MOVE.W  #$0700, (a0)+   ; 4x2, link = 0
-    MOVE.W  #$0001, (a0)+   ; pal 0, no flip, pattern #1
-    MOVE.W  #128, (a0)+     ; horizontal pos
-
     ; clear BUFF_PLANE
     LEA.L   BUFF_PLANE, a0
     MOVEQ   #0, d0
@@ -427,7 +420,6 @@ CIN_TRAIN_2:
         NOT.W   d1
         ANDI.W  #%11, d1
         LSL.W   #5, d1
-        ; JSR     CIN_TRAIN_2_LOAD_CAR
         JSR     SUB_TRAIN_LOAD_CAR
 
 @CIN_TRAIN_2_HSCROLL:
@@ -507,7 +499,7 @@ CIN_TRAIN_3:
     ANDI.W  #7, d1
     BNE     @CIN_TRAIN_3_HSCROLL
     SUB.W   #1, CIN_TRAIN_VEL
-    ADD.W   #1, CIN_BACK_VEL
+    ADD.W   #1, CIN_BACK_VEL    ; BACK_VEL will be 64>>2, i.e. 16
 
     ; adjust HScroll
 @CIN_TRAIN_3_HSCROLL:
@@ -546,20 +538,24 @@ CIN_TRAIN_3:
     ; once we're 64 frames away, un-load a car so we see end of train
     CMPI.W  #$40, d0
     BNE     @CIN_TRAIN_3_RET
+    MOVEQ   #$60, d1
+    JSR     SUB_TRAIN_UNLOAD_CAR
+    BRA     @CIN_TRAIN_3_RET
+
     ; we'll be doing the fourth car
     LEA.L   BUFF_TRAINCAR_4, a0
     MOVEQ   #0, d3
     MOVEQ   #$60, d4
     ; eight rows
     MOVEQ   #7, d1
-@UNLOAD_CAR_ROW:
+;@UNLOAD_CAR_ROW:
         ; 16 tiles, 1 long = 2 tiles
         MOVEQ   #7, d2
-@UNLOAD_CAR_TILE:
+;@UNLOAD_CAR_TILE:
             MOVE.L  d3, (a0)+
-            DBRA    d2, @UNLOAD_CAR_TILE
+            ;DBRA    d2, @UNLOAD_CAR_TILE
         ADD.L   d4, a0
-        DBRA    d1, @UNLOAD_CAR_ROW
+        ;DBRA    d1, @UNLOAD_CAR_ROW
 
     ; get plane to update
     MOVE.L  #BUFF_PLANE, d0
