@@ -100,10 +100,10 @@ PreventResetBugLoop:
     DBRA    d0, PreventResetBugLoop
 
 InitJoys:
-;   ** SETUP S-CTRL 1, 2, EXT **
+;   ** SETUP S-CTRL 1, 2, EXP **
     ; Baud rate: 4800bps (max)
-    ; TR: Parallel (not serial)
-    ; TL: Parallel (not serial)
+    ; TR: Parallel mode
+    ; TL: Parallel mode
     ; Rxd ready interrupt off
     ; !RxdError
     ; !RxdReady
@@ -112,7 +112,7 @@ InitJoys:
     MOVE.B  #$00, JOY2_SCTRL
     MOVE.B  #$00, JOYX_SCTRL
     
-;   ** SETUP CTRL 1, 2, EXT **
+;   ** SETUP CTRL 1, 2, EXP **
     ; TH-Interrupt off
     ; PD6: Input
     ; PD5..0: Output
@@ -120,7 +120,7 @@ InitJoys:
     MOVE.B  #$40, JOY2_CTRL
     MOVE.B  #$40, JOYX_CTRL
     
-; ** SETUP DATA 1, 2, EXT **
+; ** SETUP DATA 1, 2, EXP **
     ; TH = 1
     ; TR = 0
     ; TL = 0

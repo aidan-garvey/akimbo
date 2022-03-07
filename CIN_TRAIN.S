@@ -42,7 +42,113 @@ CIN_TRAIN_INIT:
     VDP_REG 11, %00000010
     ; set VScroll to 48 for plane A, 0 for plane B
     MOVE.L  #$00300000, SCROLL_Y
+
     ; TODO: if necessary, clear BUFF_HSCROLL
+
+    ; load landscape graphics into vram
+    ; starting at cell $201 (address $4020)
+    MOVE.L  #LAND_NIGHT_CHARS, d0
+    MOVE.W  #16*8, d1
+    MOVE.W  #$4020, d2
+    
+    JSR     DMADump
+    
+    ; load SCROLLB contents into screen
+    ; buffer, DMA transfer it.
+    LEA.L   BUFF_PLANE, a0
+    
+    ; pattern repeats 15 times vertically
+    MOVE.W  #14, d0
+@NIGHT_SKY_ROW:
+    ; pattern repeats 16 times horizontally
+    MOVE.W  #15, d1
+@SKY_ROW_1:
+    LEA.L   STARS_PATTERN_ROW1, a1
+
+    MOVE.L  (a1)+, (a0)+
+    MOVE.L  (a1)+, (a0)+
+    
+    DBRA    d1, @SKY_ROW_1
+    
+    MOVE.W  #15, d1
+@SKY_ROW_2:
+    LEA.L   STARS_PATTERN_ROW2, a1
+    
+    MOVE.L  (a1)+, (a0)+
+    MOVE.L  (a1)+, (a0)+
+    
+    DBRA    d1, @SKY_ROW_2
+    
+    ; start new row of pattern
+    DBRA    d0, @NIGHT_SKY_ROW
+    
+    ; ** do a row of train tracks **
+    ; a1 will have first 2 tiles
+    LEA.L   TRACKS_PATTERN_TOP, a1
+    ; a2 will have second 2 tiles
+    MOVE.L  a1, a2
+    ADD.L   #4, a2
+
+    ; 64-wide plane, 4-wide pattern
+    ; 16 repetitions
+    MOVE.W  #15, d0
+@TRACKS_LOOP:
+    MOVE.L  (a1), (a0)+
+    MOVE.L  (a2), (a0)+
+    DBRA    d0, @TRACKS_LOOP
+    
+    ; ** do a row of track supports **
+    ; a1 will have 2 tiles without supports
+    LEA.L   TRACKS_PATTERN_BOTTOM, a1
+    ; a2 will have a tile without supports, and one with a support
+    MOVE.L  a1, a2
+    ADD.L   #2, a2
+    ; repeats 8 times
+    MOVE.W  #7, d0
+@GROUND_LOOP:
+    ; load in 7 tiles without supports, and 1 with a support
+    MOVE.L  (a1), (a0)+
+    MOVE.L  (a1), (a0)+
+    MOVE.L  (a1), (a0)+
+    MOVE.L  (a2), (a0)+
+    DBRA    d0, @GROUND_LOOP
+    
+    ; DMA transfer pattern to VRAM
+    MOVE.L  #BUFF_PLANE, d0
+    MOVE.L  #$800, d1
+    MOVE.L  #VRAM_SCROLLB, d2
+    
+    JSR     DMADump
+    
+    ; load train graphics into VRAM starting
+    ; at cell $101 (address $2020)
+    MOVE.L  #TRAIN_CHARS, d0
+    MOVE.W  #16*$1D, d1
+    MOVE.W  #$2020, d2
+    
+    JSR     DMADump
+
+    ; load player graphics into VRAM starting
+    ; at cell $1 (address $20)
+    LEA.L   VDP_DATA, a1
+    VDP_ACCESS VDP_W_VRAM, $0020
+    
+    LEA.L   PLAYER_RED, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_RED, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_RED, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_RED, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_BLUE, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_BLUE, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_BLUE, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_BLUE, a0
+    JSR     CopyChar
 
     ; clear BUFF_PLANE
     LEA.L   BUFF_PLANE, a0
@@ -314,7 +420,6 @@ CIN_TRAIN_2:
         NOT.W   d1
         ANDI.W  #%11, d1
         LSL.W   #5, d1
-        ; JSR     CIN_TRAIN_2_LOAD_CAR
         JSR     SUB_TRAIN_LOAD_CAR
 
 @CIN_TRAIN_2_HSCROLL:
@@ -394,7 +499,7 @@ CIN_TRAIN_3:
     ANDI.W  #7, d1
     BNE     @CIN_TRAIN_3_HSCROLL
     SUB.W   #1, CIN_TRAIN_VEL
-    ADD.W   #1, CIN_BACK_VEL
+    ADD.W   #1, CIN_BACK_VEL    ; BACK_VEL will be 64>>2, i.e. 16
 
     ; adjust HScroll
 @CIN_TRAIN_3_HSCROLL:
@@ -433,20 +538,24 @@ CIN_TRAIN_3:
     ; once we're 64 frames away, un-load a car so we see end of train
     CMPI.W  #$40, d0
     BNE     @CIN_TRAIN_3_RET
+    MOVEQ   #$60, d1
+    JSR     SUB_TRAIN_UNLOAD_CAR
+    BRA     @CIN_TRAIN_3_RET
+
     ; we'll be doing the fourth car
     LEA.L   BUFF_TRAINCAR_4, a0
     MOVEQ   #0, d3
     MOVEQ   #$60, d4
     ; eight rows
     MOVEQ   #7, d1
-@UNLOAD_CAR_ROW:
+;@UNLOAD_CAR_ROW:
         ; 16 tiles, 1 long = 2 tiles
         MOVEQ   #7, d2
-@UNLOAD_CAR_TILE:
+;@UNLOAD_CAR_TILE:
             MOVE.L  d3, (a0)+
-            DBRA    d2, @UNLOAD_CAR_TILE
+            ;DBRA    d2, @UNLOAD_CAR_TILE
         ADD.L   d4, a0
-        DBRA    d1, @UNLOAD_CAR_ROW
+        ;DBRA    d1, @UNLOAD_CAR_ROW
 
     ; get plane to update
     MOVE.L  #BUFF_PLANE, d0
