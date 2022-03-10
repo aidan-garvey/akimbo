@@ -49,6 +49,11 @@
 ; JOYPAD INPUT SUBROUTINE
 ; ***********************
     INCLUDE READJOY.S
+
+; **************************
+; PLAYER MOVEMENT SUBROUTINE
+; **************************
+    INCLUDE MOVE_PLAYER.S
     
 ; *******************
 ; GAME INITIALIZATION
@@ -93,6 +98,8 @@ GAME_INIT:
 MAIN:
     ; main loop should only happen once per frame
     WAIT_VB
+
+    JSR     READJOY
     
     ; perform subroutine for current game state
     MOVE.L  MAIN_VECTOR, a0

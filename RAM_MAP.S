@@ -1,11 +1,9 @@
-; ************
-;   RAM  MAP
-; ------------
-; Allocation
-; of RAM
-; ($FF0000 - 
-; $FFFFFF).
-; ************
+; *******************
+; ***** RAM MAP *****
+; -------------------
+;  Allocation of RAM
+; ($FF0000 - $FFFFFF)
+; *******************
 
 ; as defined in HW_CONST:
 ; RAM_BASE = $FF0000
@@ -15,14 +13,14 @@ STACK_END = $FF0400     ; 1024B stack
 VBLANKON = $FF0400      ; WORD: Has VBlank routine finished? (TO-TRY: BYTE)
 VBVECTOR = $FF0402      ; LONG: Location of VBlank routine
 
-;JOY1 = $FF0406          ; LONG: Data from player 1
-;JOY1_OLD = $FF040A      ; LONG: JOY1 from previous frame
-;JOY2 = $FF040E          ; LONG: Data from player 2
-;JOY2_OLD = $FF0412      ; LONG: JOY2 from previous frame
-JOY1 = $FF0406      ; WORD: Joypad data for player 1
-JOY2 = $FF0408      ; WORD: Joypad data for player 2
-JOY1_OLD = $FF040A  ; WORD: JOY1 from previous frame
-JOY2_OLD = $FF040C  ; WORD: JOY2 from previous frame
+;JOY1 = $FF0406         ; LONG: Data from player 1
+;JOY1_OLD = $FF040A     ; LONG: JOY1 from previous frame
+;JOY2 = $FF040E         ; LONG: Data from player 2
+;JOY2_OLD = $FF0412     ; LONG: JOY2 from previous frame
+JOY1 = $FF0406          ; WORD: Joypad data for player 1
+JOY2 = $FF0408          ; WORD: Joypad data for player 2
+JOY1_OLD = $FF040A      ; WORD: JOY1 from previous frame
+JOY2_OLD = $FF040C      ; WORD: JOY2 from previous frame
 
 ; $FF040E - $FF0416: RESERVED
     ; may be needed for reworks of controller input handling
@@ -52,10 +50,14 @@ GAME_TICK = $FF2004     ; 4B: Game tick (frame counter)
 SCROLL_Y = $FF2008      ; 4B: Y scroll values for each playfield
 SCROLLA_Y = $FF2008
 SCROLLB_Y = $FF200A
+; $FF200C
 
-PLAYER1_X = $FF3000     ; 2B: Player 1's X position
-PLAYER1_Y = $FF3002     ; 2B: Player 1's Y position
-PLAYER1_VX = $FF3004    ; 2B: Player 1's X velocity
-PLAYER1_VY = $FF3006    ; 2B: Player 1's Y velocity
-PLAYER1_FLAGS = $FF3008 ; 2B: Flags for P1
+; Note about position tracking: the sprite's top-left corner is stored
+MAP_X = $FF3000         ; 4B: Players' X position in the level
+MAP_Y = $FF3004         ; 4B: Players' Y position in the level
+PLAYER1_X = $FF3100     ; 2B: Player 1's X position on-screen
+PLAYER1_Y = $FF3102     ; 2B: Player 1's Y position on-screen
+PLAYER1_VX = $FF3104    ; 2B: Player 1's X velocity
+PLAYER1_VY = $FF3106    ; 2B: Player 1's Y velocity
+PLAYER1_FLAGS = $FF3108 ; 2B: Flags for P1
     ; {onGround, xxx, direction, xxx xxxx xxxx}

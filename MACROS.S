@@ -75,3 +75,23 @@ PUSH: MACRO
 POP: MACRO
     MOVEM.L (SP)+, \1
     ENDM
+
+; Set a register to the smallest of two values: itself, or an immediate value
+; \1: immediate value (user must include # symbol)
+; \2: destination register
+MINI: MACRO
+    CMPI.L  \1, \2
+    BLE     @MINI_END
+    MOVE.L  \1, \2
+@MINI_END:
+    ENDM
+
+; Set a register to the largest of two values: itself, or an immediate value
+; \1: immediate value (user must include # symbol)
+; \2: destination register
+MAXI: MACRO
+    CMPI.L  \1, \2
+    BGE     @MAXI_END
+    MOVE.L  \1, \2
+@MAXI_END:
+    ENDM

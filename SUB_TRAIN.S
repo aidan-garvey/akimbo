@@ -24,6 +24,55 @@ SUB_TRAIN_SHAKE_CAM:
 @SHAKE_CAM_RET:
     RTS
 
+; -----------------------------------------------------
+; UPDATE POSITION OF PLAYER SPRITE, DO SHAKY CAM EFFECT
+SUB_TRAIN_PLAYERSPRITE:
+    LEA.L   PLAYER1_X, a0   ; a0 points to PLAYER1_X
+    ; d0 = floor(x pos)
+    ; d1 = floor(y pos)
+    MOVE.W  (a0)+, d0
+    ASR.W   #4, d0
+    MOVE.W  (a0)+, d1
+    ASR.W   #4, d1
+
+    ; adjust player's y position by same rules as camera shake
+        ; (see above subroutine for more info)
+    MOVE.L  GAME_TICK, d2
+    ANDI.W  #$0004, d2
+    LSR.W   #2, d2
+    ADD.W   d2, d1
+
+    ; save data to sprite buffer
+    LEA.L   BUFF_SPRITES, a0
+    MOVE.W  d1, (a0)+           ; ypos
+    MOVE.W  #$0700, (a0)+       ; 4x2 size, link = 0
+    ; get direction flag for HFLIP
+    MOVE.W  (a2), d2
+    ANDI.W  #$0800, d2          ; hflip
+    ORI.W   #$0001, d2          ; starts at tile 1
+    MOVE.W  d2, (a0)+           ; also sets palette 0
+    MOVE.W  d0, (a0)            ; xpos
+
+    RTS
+
+; -------------------------------------------------------------
+; update rest of HSCROLL_A to match the first entry but slanted
+SUB_TRAIN_SCROLL_A:
+    ; HSCROLL_A will be based on MAP_X
+    MOVE.L  MAP_X, d0
+    ASR.L   #4, d0
+    LEA.L   BUFF_HSCROLLA, a0
+
+    ; 28 rows of cells on screen
+    MOVEQ   #27, d1
+@SUB_TRAIN_SCROLL_A_LOOP:
+        MOVE.W  d0, (a0)+
+        SUBQ    #1, d0      ; each row will be offset by 1 to slant train
+        DBRA    d1, @SUB_TRAIN_SCROLL_A_LOOP
+    
+    RTS
+
+
 SUB_TRAIN_SCROLL_B:
     ; get current tracks scroll value
     MOVE.W  BUFF_HSCROLLB+54, d0
