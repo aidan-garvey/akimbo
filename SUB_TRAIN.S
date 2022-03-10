@@ -24,6 +24,24 @@ SUB_TRAIN_SHAKE_CAM:
 @SHAKE_CAM_RET:
     RTS
 
+; -------------------------------------------------------------
+; update rest of HSCROLL_A to match the first entry but slanted
+SUB_TRAIN_SCROLL_A:
+    ; HSCROLL_A will be based on MAP_X
+    MOVE.L  MAP_X, d0
+    ASR.L   #4, d0
+    LEA.L   BUFF_HSCROLLA, a0
+
+    ; 28 rows of cells on screen
+    MOVEQ   #27, d1
+@SUB_TRAIN_SCROLL_A_LOOP:
+        MOVE.W  d0, (a0)+
+        SUBQ    #1, d0      ; each row will be offset by 1 to slant train
+        DBRA    d1, @SUB_TRAIN_SCROLL_A_LOOP
+    
+    RTS
+
+
 SUB_TRAIN_SCROLL_B:
     ; get current tracks scroll value
     MOVE.W  BUFF_HSCROLLB+54, d0

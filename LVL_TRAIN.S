@@ -8,6 +8,12 @@ V_MIN = -64     ; min player speed (left)
 LVL_TRAIN_INIT:
     MOVE.L  #0, GAME_TICK
 
+    ; set MAP_X to current scroll value for plane A
+    MOVEQ   #0, d0
+    MOVE.W  BUFF_HSCROLLA, d0
+    LSL.L   #4, d0
+    MOVE.L  d0, MAP_X
+
     ; Initialize Player 1's data
     LEA.L   PLAYER1_X, a0
     MOVE.W  #$70<<4, (a0)+  ; x: 112.0
@@ -39,8 +45,11 @@ LVL_TRAIN_1:
     JSR     SUB_TRAIN_SCROLL_B
 
     ; **** PLAYER CONTROL ****
-    JSR     READJOY
+    ; JSR     READJOW   : NOW CALLED IN MAIN
     ; JOY1/2, JOY1/2_OLD are now updated
+
+    JSR     MOVE_PLAYER
+    RTS
 
     ; d5 will contain joypad 1 data in lower byte
     ; (upper is empty): {ST A C B R L D U}
