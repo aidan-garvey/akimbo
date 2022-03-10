@@ -206,8 +206,6 @@ MOVE_PLAYER:
     ; scroll left by difference (to move the camera to the right)
     SUB.W   d0, (a0)
     SUB.L   d0, (a4)
-    ;ASR.W   #4, d0
-    ;SUB.W   d0, (a3)
     BRA     @SCROLL_X_DONE
 @SCROLL_X_LEFT:
     ; if x < SCREEN_X_R - SCROLL_X_BOUND, scroll by SCREEN_X_R - SCROLL_X_BOUND - x
@@ -218,30 +216,6 @@ MOVE_PLAYER:
     ; scroll right by difference (to move the camera to the right)
     SUB.W   d0, (a0)
     SUB.L   d0, (a4)
-    ;ASR.W   #4, d0
-    ;SUB.W   d0, (a3)
 @SCROLL_X_DONE:
     
-    JSR     SUB_TRAIN_SCROLL_A
-
-@UPDATE_PLAYER:
-    LEA.L   PLAYER1_X, a0   ; a0 points to PLAYER1_X
-    ; d0 = floor(x pos)
-    ; d1 = floor(y pos)
-    MOVE.W  (a0)+, d0
-    ASR.W   #4, d0
-    MOVE.W  (a0)+, d1
-    ASR.W   #4, d1
-
-    ; save data to sprite buffer
-    LEA.L   BUFF_SPRITES, a0
-    MOVE.W  d1, (a0)+           ; ypos
-    MOVE.W  #$0700, (a0)+       ; 4x2 size, link = 0
-    ; get direction flag for HFLIP
-    MOVE.W  (a2), d2
-    ANDI.W  #$0800, d2          ; hflip
-    ORI.W   #$0001, d2          ; starts at tile 1
-    MOVE.W  d2, (a0)+           ; also sets palette 0
-    MOVE.W  d0, (a0)            ; xpos
-
     RTS
