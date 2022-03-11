@@ -26,7 +26,7 @@ SUB_TRAIN_SHAKE_CAM:
 
 ; -----------------------------------------------------
 ; UPDATE POSITION OF PLAYER SPRITE, DO SHAKY CAM EFFECT
-SUB_TRAIN_PLAYERSPRITE:
+SUB_TRAIN_PLAYER_SPRITE:
     LEA.L   PLAYER1_X, a0   ; a0 points to PLAYER1_X
     ; d0 = floor(x pos)
     ; d1 = floor(y pos)
@@ -60,6 +60,7 @@ SUB_TRAIN_PLAYERSPRITE:
 SUB_TRAIN_SCROLL_A:
     ; HSCROLL_A will be based on MAP_X
     MOVE.L  MAP_X, d0
+    NEG.L   d0
     ASR.L   #4, d0
     LEA.L   BUFF_HSCROLLA, a0
 
@@ -93,6 +94,11 @@ SUB_TRAIN_SCROLL_B:
     MOVE.W  d0, (a0)+
 
     RTS
+
+; -----------------------------------------------
+; UPDATE CONTENTS OF PLANE A AND COLLISION BUFFER
+SUB_TRAIN_UPDATE_MAP:
+
 
 ; -----------------------------------------
 ; UNLOAD A TRAIN CAR FROM BUFF_PLANE

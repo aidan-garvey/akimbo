@@ -55,6 +55,8 @@ SCROLLB_Y = $FF200A
 ; Note about position tracking: the sprite's top-left corner is stored
 MAP_X = $FF3000         ; 4B: Players' X position in the level
 MAP_Y = $FF3004         ; 4B: Players' Y position in the level
+MAP_X_OLD = $FF3008     ; 4B: MAP_X from previous frame
+MAP_Y_OLD = $FF300C     ; 4B: MAP_Y from previous frame
 PLAYER1_X = $FF3100     ; 2B: Player 1's X position on-screen
 PLAYER1_Y = $FF3102     ; 2B: Player 1's Y position on-screen
 PLAYER1_VX = $FF3104    ; 2B: Player 1's X velocity

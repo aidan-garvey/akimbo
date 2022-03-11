@@ -178,7 +178,7 @@ MOVE_PLAYER:
 @JUMP_DONE:
 
     ; if player is not within designated screen area, move player into area
-        ; and change MAP_X/Y by opposite amount
+        ; and change MAP_X/Y by corresponding amount
         ; for now, only x scrolling
     
     MOVEQ   #0, d0
@@ -187,6 +187,8 @@ MOVE_PLAYER:
     MOVE.W  -(a1), d1
     ; load MAP_X into a4
     LEA.L   MAP_X, a4
+    ; save value in MAP_X_OLD before overwriting
+    MOVE.L  (a4), MAP_X_OLD
     ; load BUFF_HSCROLLA into a3
     LEA.L   BUFF_HSCROLLA, a3
 
@@ -205,7 +207,7 @@ MOVE_PLAYER:
     MINI    #SCROLL_SPEED, d0
     ; scroll left by difference (to move the camera to the right)
     SUB.W   d0, (a0)
-    SUB.L   d0, (a4)
+    ADD.L   d0, (a4)
     BRA     @SCROLL_X_DONE
 @SCROLL_X_LEFT:
     ; if x < SCREEN_X_R - SCROLL_X_BOUND, scroll by SCREEN_X_R - SCROLL_X_BOUND - x
@@ -215,7 +217,7 @@ MOVE_PLAYER:
     MAXI    #-SCROLL_SPEED, d0
     ; scroll right by difference (to move the camera to the right)
     SUB.W   d0, (a0)
-    SUB.L   d0, (a4)
+    ADD.L   d0, (a4)
 @SCROLL_X_DONE:
     
     RTS

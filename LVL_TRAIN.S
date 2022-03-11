@@ -1,18 +1,24 @@
-A_GRAVITY = 8   ; acceleration due to gravity
-A_FRICTION = 8  ; acceleration due to friction
-A_INPUT = 1<<4  ; acceleration due to input
-A_JUMP = -8<<4  ; acceleration due to a jump
-V_MAX = 64      ; max player speed (right)
-V_MIN = -64     ; min player speed (left)
+;A_GRAVITY = 8   ; acceleration due to gravity
+;A_FRICTION = 8  ; acceleration due to friction
+;A_INPUT = 1<<4  ; acceleration due to input
+;A_JUMP = -8<<4  ; acceleration due to a jump
+;V_MAX = 64      ; max player speed (right)
+;V_MIN = -64     ; min player speed (left)
+
+MAP_X_START = 416<<4 ; starting value for MAP_X
+; Magic number that stops the camera from
+; snapping to a new place after the cinematic.
 
 LVL_TRAIN_INIT:
     MOVE.L  #0, GAME_TICK
 
     ; set MAP_X to current scroll value for plane A
-    MOVEQ   #0, d0
-    MOVE.W  BUFF_HSCROLLA, d0
-    LSL.L   #4, d0
-    MOVE.L  d0, MAP_X
+    ;MOVEQ   #0, d0
+    ;MOVE.W  BUFF_HSCROLLA, d0
+    ;LSL.L   #4, d0
+    ;NEG.L   d0
+    ;MOVE.L  d0, MAP_X
+    MOVE.L  #MAP_X_START, MAP_X
 
     ; Initialize Player 1's data
     LEA.L   PLAYER1_X, a0
@@ -50,6 +56,8 @@ LVL_TRAIN_1:
     ; scroll the map
     JSR     SUB_TRAIN_SCROLL_A
     ; update player sprite position
-    JSR     SUB_TRAIN_PLAYERSPRITE
+    JSR     SUB_TRAIN_PLAYER_SPRITE
+    ; load in new cars if needed
+    ;JSR     SUB_TRAIN_UPDATE_MAP
     
     RTS
