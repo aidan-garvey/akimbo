@@ -68,7 +68,7 @@ SUB_TRAIN_SCROLL_A:
     MOVEQ   #27, d1
 @SUB_TRAIN_SCROLL_A_LOOP:
         MOVE.W  d0, (a0)+
-        SUBQ    #1, d0      ; each row will be offset by 1 to slant train
+        ;SUBQ    #1, d0      ; each row will be offset by 1 to slant train
         DBRA    d1, @SUB_TRAIN_SCROLL_A_LOOP
     
     RTS
@@ -98,6 +98,49 @@ SUB_TRAIN_SCROLL_B:
 ; -----------------------------------------------
 ; UPDATE CONTENTS OF PLANE A AND COLLISION BUFFER
 SUB_TRAIN_UPDATE_MAP:
+    ; determine if we've crossed a 16-cell boundary
+    MOVE.L  MAP_X, d0
+    MOVE.L  MAP_X_OLD, d1
+    ; 1 pixel is $10 units
+    ; 1 cell is $8 pixels
+    ; 16 cells = $10 cells = $10 * $10 * $8
+    ; 16 cells = $800 units
+    MOVE.W  d0, d2
+    MOVE.W  d1, d3
+    ANDI.W  #$800, d2
+    ANDI.W  #$800, d3
+    CMP.W   d2, d3
+    ; if we didn't cross $800 boundary, don't update the map
+    BEQ     @UPDATE_MAP_RET
+
+    ; find buffer offset of the 16-cell-wide section to write over
+    ; $0000 -> first -> $00
+    ; $0800 -> second -> $20
+    ; $1000 -> third -> $40
+    ; $1800 -> fourth -> $60
+    ; %000x x000 0000 0000 -> %0000 0000 0xx0 0000
+    MOVE.W  d0, d2
+    LSR.W   #6, d2
+
+    ; if camera is moving to the right, then the car that needs to be updated
+    ; is different
+    CMP.L   d0, d1
+    BGE     @DIRECTION_DONE
+    ADD.W   #$60, d2
+@DIRECTION_DONE:
+    MOVE.L  d2, d1
+    ANDI.L  #$0060, d1
+
+    ; if MAP_X is negative, unload. If positive, load.
+    TST.L   d0
+    BLT     @UPDATE_UNLOAD
+    JSR     SUB_TRAIN_LOAD_CAR
+    BRA     @UPDATE_MAP_RET
+@UPDATE_UNLOAD:
+    JSR     SUB_TRAIN_UNLOAD_CAR
+
+@UPDATE_MAP_RET:
+    RTS
 
 
 ; -----------------------------------------
@@ -106,6 +149,7 @@ SUB_TRAIN_UPDATE_MAP:
 SUB_TRAIN_UNLOAD_CAR:
     ; point at desired spot for train car
     LEA.L   BUFF_TRAINCAR_1, a0
+    ANDI.L  #$000000FF, d1
     ADD.L   d1, a0
 
     MOVEQ   #0, d2
