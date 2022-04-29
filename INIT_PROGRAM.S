@@ -1,9 +1,6 @@
 ; **********************
 ; INITIALIZATION PROGRAM
 ; ----------------------
-; Aidan Garvey,
-;             2021-09-21
-; ----------------------
 ; Includes code needed
 ; to start the console
 ; and set it up for the

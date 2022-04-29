@@ -1,10 +1,6 @@
 ; ==================
 ;  ** TRAIN  MAP **
 ; ------------------
-; By Aidan Garvey,
-; created 2022-03-11
-; updated 2022-03-11
-; ------------------
 ; Collision data for
 ; the train level
 ; ==================

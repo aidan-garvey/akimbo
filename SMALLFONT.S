@@ -1,17 +1,11 @@
 ; =============================
-;      ** SMALLFONT.X68 **
-; -----------------------------
-; Created by Aidan Garvey,
-;                     2021-8-25
+;       ** SMALLFONT.S **
 ; -----------------------------
 ; Basic, single colour font for
 ; Genesis / Mega Drive games.
-; Each character is 1... erm...
-; character in size. Features
-; digits and capital letters.
-;
-; Characters are in order of
-; their ASCII codes.
+; Each character is 1 tile in
+; size. Features digits and
+; capital letters.
 ; =============================
 
 SMALLFONT_0:

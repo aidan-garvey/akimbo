@@ -10,3 +10,7 @@ BUFF_TRAINCAR_4 = BUFF_PLANE+$C60
 
 TRAIN_MAXSPEED = 32
 BACK_MAXSPEED = 32
+
+MAP_X_START = 416<<4 ; starting value for MAP_X
+; Magic number that stops the camera from
+; snapping to a new place after the cinematic.

@@ -204,7 +204,7 @@ MOVE_PLAYER:
     SUBI.L  #(SCREEN_X_L+SCROLL_X_BOUND)<<4, d0
     BLE     @SCROLL_X_DONE
     ; limit scroll amount to SCROLL_SPEED
-    MINI    #SCROLL_SPEED, d0
+    MINI.L  #SCROLL_SPEED, d0
     ; scroll left by difference (to move the camera to the right)
     SUB.W   d0, (a0)
     ADD.L   d0, (a4)
@@ -214,7 +214,7 @@ MOVE_PLAYER:
     SUBI.L  #(SCREEN_X_R-SCROLL_X_BOUND)<<4, d0
     BGT     @SCROLL_X_DONE
     ; limit scroll amount to -SCROLL_SPEED
-    MAXI    #-SCROLL_SPEED, d0
+    MAXI.L  #-SCROLL_SPEED, d0
     ; scroll right by difference (to move the camera to the right)
     SUB.W   d0, (a0)
     ADD.L   d0, (a4)

@@ -1,8 +1,4 @@
 
-MAP_X_START = 416<<4 ; starting value for MAP_X
-; Magic number that stops the camera from
-; snapping to a new place after the cinematic.
-
 LVL_TRAIN_INIT:
     MOVE.L  #0, GAME_TICK
 
@@ -50,10 +46,10 @@ LVL_TRAIN_1:
 
     ; handle player movement
     JSR     MOVE_PLAYER
-    ; scroll the map
-    JSR     SUB_TRAIN_SCROLL_A
     ; update player sprite position
     JSR     SUB_TRAIN_PLAYER_SPRITE
+    ; scroll the map
+    JSR     SUB_TRAIN_SCROLL_A
     ; load in new cars if needed
     JSR     SUB_TRAIN_UPDATE_MAP
     

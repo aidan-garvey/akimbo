@@ -1,14 +1,11 @@
-; ************************
-;     A  K  I  M  B  O    
-; ************************
-; By Aidan Garvey
-; Modified 2021-09-18
-; ------------------------
-; Acknowledgements:
-; TODO
-; ------------------------
-; 
-; ************************
+; ***************************
+;      A  K  I  M  B  O    
+; ***************************
+; Main file for including all
+; other code, initializing
+; the game, and executing the
+; main game loop.
+; ***************************
 
     ORG     $0000
     
@@ -137,7 +134,7 @@ CopyChar:
 ; ******
     ; Player patterns & palette
     INCLUDE PLAYERGFX.S
-    ; Colour palette
+    ; System palette
     INCLUDE PALETTES.S
     ; Train patterns & palette
     INCLUDE TRAINGFX.S

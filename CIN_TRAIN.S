@@ -11,8 +11,8 @@
 ; --------------------------------------
 ; 1) Camera pans down to train tracks
 ; 2) Train speeds by screen
-; 3) Camera begins following train
-; 4) Back of train comes into view
+; 3) Camera begins following train,
+;    back of train comes into view
 ; ======================================
 ; Subroutines:
 ; --------------------------------------
@@ -32,7 +32,7 @@
 ;   car near the end
 ; ======================================
 
-; note: maybe move loading in the car to INIT?
+; note: loading in the first car could be moved from TRAIN_1 to INIT
 
 ; Initialize memory for cinematic
 CIN_TRAIN_INIT:

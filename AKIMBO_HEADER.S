@@ -1,9 +1,8 @@
-; ----------------
-; ** ROM HEADER **
-; Always placed at
-; $00000000, to be
-; done by includer
-; ----------------
+; ---------------------------
+;  *****  ROM  HEADER  ***** 
+; Must be placed at address
+; $00000000 by including file 
+; ---------------------------
 
 ; -------
 ; VECTORS
