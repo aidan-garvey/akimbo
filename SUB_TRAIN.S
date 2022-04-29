@@ -26,7 +26,7 @@ SUB_TRAIN_SHAKE_CAM:
 
 ; -----------------------------------------------------
 ; UPDATE POSITION OF PLAYER SPRITE, DO SHAKY CAM EFFECT
-SUB_TRAIN_PLAYERSPRITE:
+SUB_TRAIN_PLAYER_SPRITE:
     LEA.L   PLAYER1_X, a0   ; a0 points to PLAYER1_X
     ; d0 = floor(x pos)
     ; d1 = floor(y pos)
@@ -60,6 +60,7 @@ SUB_TRAIN_PLAYERSPRITE:
 SUB_TRAIN_SCROLL_A:
     ; HSCROLL_A will be based on MAP_X
     MOVE.L  MAP_X, d0
+    NEG.L   d0
     ASR.L   #4, d0
     LEA.L   BUFF_HSCROLLA, a0
 
@@ -67,7 +68,7 @@ SUB_TRAIN_SCROLL_A:
     MOVEQ   #27, d1
 @SUB_TRAIN_SCROLL_A_LOOP:
         MOVE.W  d0, (a0)+
-        SUBQ    #1, d0      ; each row will be offset by 1 to slant train
+        ;SUBQ    #1, d0      ; each row will be offset by 1 to slant train
         DBRA    d1, @SUB_TRAIN_SCROLL_A_LOOP
     
     RTS
@@ -94,12 +95,92 @@ SUB_TRAIN_SCROLL_B:
 
     RTS
 
+; -----------------------------------------------
+; UPDATE CONTENTS OF PLANE A AND COLLISION BUFFER
+SUB_TRAIN_UPDATE_MAP:
+
+    ; load new car whenever we cross scroll value of $000, $080, $100 or $180
+
+    ; calculate this frame and last frame's scroll values
+
+    MOVE.L  MAP_X, d0
+    MOVE.L  MAP_X_OLD, d1
+
+    MOVE.L  d0, d2
+    MOVE.L  d1, d3
+    ;NEG.L   d2
+    ;NEG.L   d3
+    ASR.L   #4, d2
+    ASR.L   #4, d3
+
+    ANDI.W  #$180, d2
+    ANDI.W  #$180, d3
+    CMP.W   d2, d3
+
+    ; return if we haven't crossed a boundary
+    BEQ     @UPDATE_MAP_RET
+
+    ; determine offset in buffer to write traincar to
+
+    ;   d2  -> offset
+    ; $0000 -> $60
+    ; $0080 -> $00
+    ; $0100 -> $20
+    ; $0180 -> $40
+    
+    ; d2>>2 -> offset
+    ; $0000 -> $60
+    ; $0020 -> $00
+    ; $0040 -> $20
+    ; $0060 -> $40
+
+    LSR.W   #2, d2
+    ; d3 = MAP_X
+    MOVE.L  d0, d3
+
+    CMP.W   d1, d0
+    BLT     @UPDATE_LEFT
+    ; (d2>>2 + $60) & $7F = offset
+    ADD.W   #$60, d2
+    ANDI.W  #$7F, d2
+    ; moving right, we know that MAP_X>>4 is greater than or equal to the multiple of $80
+    ; so position of car is MAP_X>>4 & 0xFFFF FF80 + $180 (3 cars to the right of the multiple of $80)
+    ; carPos = MAP_X & 0xFFFF F800 + $1800
+    ADD.L   #$1800, d3
+    ; (and operation done after fallthru)
+@UPDATE_LEFT:
+    ; d2>>2 = offset, so don't change it
+    ; moving left, MAP_X>>4 is less than multiple of $80
+    ; therefore, car is at MAP_X>>4 & 0xFFFF FF80
+    ; carPos = MAP_X & 0xFFFF F800
+    ANDI.W  #$F800, d3
+    MOVE.W  d2, d1
+    
+    ; status:
+    ; d0 = MAP_X
+    ; d1 = traincar offset
+    ; d2 = d1
+    ; d3 = traincar position in map coordinates
+
+    ; for now, train will end at MAP_X_START and go on forever
+    CMPI.L  #MAP_X_START, d3
+    BLT     @UPDATE_UNLOAD
+    JSR     SUB_TRAIN_LOAD_CAR
+    BRA     @UPDATE_MAP_RET
+@UPDATE_UNLOAD:
+    JSR     SUB_TRAIN_UNLOAD_CAR
+
+@UPDATE_MAP_RET:
+    RTS
+
+
 ; -----------------------------------------
 ; UNLOAD A TRAIN CAR FROM BUFF_PLANE
 ; d1.B contains offset from BUFF_TRAINCAR_1
 SUB_TRAIN_UNLOAD_CAR:
     ; point at desired spot for train car
     LEA.L   BUFF_TRAINCAR_1, a0
+    ANDI.L  #$000000FF, d1
     ADD.L   d1, a0
 
     MOVEQ   #0, d2
@@ -147,6 +228,7 @@ SUB_TRAIN_UNLOAD_CAR:
 ; d1.B contains offset from BUFF_TRAINCAR_1
 SUB_TRAIN_LOAD_CAR:
     LEA.L   BUFF_TRAINCAR_1, a0
+    ANDI.L  #$000000FF, d1
     ADD.L   d1, a0
     LEA.L   TRAIN_TOP_LEFT, a1
 

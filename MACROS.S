@@ -27,9 +27,9 @@ WAIT_VB: MACRO
 ; Remove the Z80 from the bus and ensure it is off before continuing
 REMOVE_Z80: MACRO
     MOVE.W  #$0100, Z80_BUSREQ  ; request bus from z80
-@REMOVE_Z80_LOOP:
+@LOOP\@:
     BTST    #0, Z80_BUSREQ      ; wait until it is off bus
-    BNE.S   @REMOVE_Z80_LOOP
+    BNE.S   @LOOP\@
     ENDM
     
 ; Replace the Z80 on the bus (for code readability)
@@ -76,22 +76,42 @@ POP: MACRO
     MOVEM.L (SP)+, \1
     ENDM
 
+; Move source to dest if source is smaller
+; \1: source register
+; \2: dest register
+MIN: MACRO
+    CMP.\0  \1, \2
+    BLE     @END\@
+    MOVE.\0 \1, \2
+@END\@:
+    ENDM
+
+; Move source to dest if source is larger
+; \1: source register
+; \2: dest register
+MAX: MACRO
+    CMP.\0  \1, \2
+    BGE     @END\@
+    MOVE.\0 \1, \2
+@END\@:
+    ENDM
+
 ; Set a register to the smallest of two values: itself, or an immediate value
 ; \1: immediate value (user must include # symbol)
 ; \2: destination register
 MINI: MACRO
-    CMPI.L  \1, \2
-    BLE     @MINI_END
-    MOVE.L  \1, \2
-@MINI_END:
+    CMP.\0  \1, \2
+    BLE     @END\@
+    MOVE.\0 \1, \2
+@END\@:
     ENDM
 
 ; Set a register to the largest of two values: itself, or an immediate value
 ; \1: immediate value (user must include # symbol)
 ; \2: destination register
 MAXI: MACRO
-    CMPI.L  \1, \2
-    BGE     @MAXI_END
-    MOVE.L  \1, \2
-@MAXI_END:
+    CMPI.\0 \1, \2
+    BGE     @END\@
+    MOVE.\0 \1, \2
+@END\@:
     ENDM

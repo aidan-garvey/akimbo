@@ -1,8 +1,6 @@
 ; *******************************
 ; SEGA GENESIS HARDWARE CONSTANTS
 ; -------------------------------
-; Aidan Garvey,        2021-09-18
-; -------------------------------
 ; Locations of various registers
 ; and memory locations in the
 ; Genesis, as well as important

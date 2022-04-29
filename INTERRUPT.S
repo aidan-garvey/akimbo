@@ -95,4 +95,4 @@ EXTINT:
 Exception:
     MOVE.W  #$2700, SR  ; disable interrupts
 INF_LOOP:
-    BRA.S INF_LOOP      ; inifinite loop  
+    BRA.S INF_LOOP      ; infinite loop  

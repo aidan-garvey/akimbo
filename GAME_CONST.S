@@ -1,9 +1,6 @@
 ; **************
 ; GAME CONSTANTS
 ; --------------
-; Aidan Garvey,
-;     2021-09-21
-; --------------
 ; Game-specific
 ; constants,
 ; stored here so

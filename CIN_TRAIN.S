@@ -11,8 +11,8 @@
 ; --------------------------------------
 ; 1) Camera pans down to train tracks
 ; 2) Train speeds by screen
-; 3) Camera begins following train
-; 4) Back of train comes into view
+; 3) Camera begins following train,
+;    back of train comes into view
 ; ======================================
 ; Subroutines:
 ; --------------------------------------
@@ -32,7 +32,7 @@
 ;   car near the end
 ; ======================================
 
-; note: maybe move loading in the car to INIT?
+; note: loading in the first car could be moved from TRAIN_1 to INIT
 
 ; Initialize memory for cinematic
 CIN_TRAIN_INIT:
@@ -471,7 +471,7 @@ CIN_TRAIN_3_WAIT:
 @CIN_WAIT_3_NEXT:
     ; set up velocity of background and train
     MOVE.W  #TRAIN_MAXSPEED*2, CIN_TRAIN_VEL
-    MOVE.W  #0, CIN_BACK_VEL
+    MOVE.W  #4, CIN_BACK_VEL
     MOVE.L  #CIN_TRAIN_3, MAIN_VECTOR
     MOVE.W  #512, CIN_TRAIN_TIMER
 
@@ -519,18 +519,73 @@ CIN_TRAIN_3:
     MOVE.W  d3, d4
     LSR.W   #4, d4      ; d4 holds sky scroll val for this frame
     
+    ; train slanting: go from every cell, to every 2 cells, ..., 16 cells, none
+    ; 1, 2, 4, 8, 16, 32 (none): 6 vals
+    ; 16 and 32 will barely show up, so we'll do 1, 2, 4, 8 (4 vals)
+    ; slant accumulator: d5
+    ; slant shift amount: d6
+    ; scratch register: d7
+    ; timer is >= 384? shift amount = 0
+    ; timer is >= 256? -> 1
+    ; >= 128? -> 2
+    ; else -> 3
+
+    ;    timer   -> d6
+    ; $000..$07F -> $3
+    ; $080..$0FF -> $2
+    ; $100..$17F -> $1
+    ; $180..$1FF -> $0
+
+    ; timer>>7 -> d6
+    ; %00 -> %11
+    ; %01 -> %10
+    ; %10 -> %01
+    ; %11 -> %00
+
+    ; 3 - timer>>7 -> d6
+    ; %11 -> %11
+    ; %10 -> %10
+    ; %01 -> %01
+    ; %00 -> %00
+
+    ; d5 is incremented at start of the loop, so the first value used will be 0
+    MOVEQ   #-1, d5
+
+    MOVE.W  d0, d1
+    LSR.W   #7, d1
+    ANDI.W  #3, d1
+    MOVEQ   #3, d6
+    SUB.W   d1, d6
+    ; d6 = 3 - timer>>7
+
+    ; each iteration of loop:
+        ; add 1 to d5
+        ; d7 = d2 - d5>>d6
+            ; move d5 to d7
+            ; shift d7 right by d6
+            ; negate d7
+            ; add d2 to d7
+        ; move d7 to scroll buffer
+
     ; first 26 rows of cells
-    MOVE.W  #25, d1
+    MOVEQ   #25, d1
 @CIN_TRAIN_3_HLOOP:
-        MOVE.W  d2, (a0)+
-        SUBQ    #1, d2  ; slant train to create speed illusion
+        ; MOVE.W  d2, (a0)+
+        ; SUBQ    #1, d2  ; slant train to create speed illusion
+        ADDQ    #1, d5
+        MOVE.W  d5, d7
+        LSR.W   d6, d7
+        NEG.W   d7
+        ADD.W   d2, d7
+        MOVE.W  d7, (a0)+
+        ; plane B doesn't shift
         MOVE.W  d4, (a1)+
         ;MOVE.W  #0, (a1)+
         DBRA    d1, @CIN_TRAIN_3_HLOOP
+
     ; last two rows of cells
-    MOVE.W  d2, (a0)+
-    SUBQ    #1, d2
-    MOVE.W  d2, (a0)
+    MOVE.W  d7, (a0)+
+    MOVE.W  d7, (a0)
     MOVE.W  d3, (a1)+
     MOVE.W  d3, (a1)
 
@@ -543,29 +598,29 @@ CIN_TRAIN_3:
     BRA     @CIN_TRAIN_3_RET
 
     ; we'll be doing the fourth car
-    LEA.L   BUFF_TRAINCAR_4, a0
-    MOVEQ   #0, d3
-    MOVEQ   #$60, d4
+    ;LEA.L   BUFF_TRAINCAR_4, a0
+    ;MOVEQ   #0, d3
+    ;MOVEQ   #$60, d4
     ; eight rows
-    MOVEQ   #7, d1
+    ;MOVEQ   #7, d1
 ;@UNLOAD_CAR_ROW:
         ; 16 tiles, 1 long = 2 tiles
-        MOVEQ   #7, d2
+        ;MOVEQ   #7, d2
 ;@UNLOAD_CAR_TILE:
-            MOVE.L  d3, (a0)+
+            ;MOVE.L  d3, (a0)+
             ;DBRA    d2, @UNLOAD_CAR_TILE
-        ADD.L   d4, a0
+        ;ADD.L   d4, a0
         ;DBRA    d1, @UNLOAD_CAR_ROW
 
     ; get plane to update
-    MOVE.L  #BUFF_PLANE, d0
-    MOVE.W  #$800, d1
-    MOVE.W  #VRAM_SCROLLA, d2
-    LEA.L   DMA_QUEUE, a0
+    ;MOVE.L  #BUFF_PLANE, d0
+    ;MOVE.W  #$800, d1
+    ;MOVE.W  #VRAM_SCROLLA, d2
+    ;LEA.L   DMA_QUEUE, a0
 
-    JSR     AddToDMAQueue
+    ;JSR     AddToDMAQueue
 
-    BRA     @CIN_TRAIN_3_RET
+    ;BRA     @CIN_TRAIN_3_RET
 
 @CIN_TRAIN_3_NEXT:
     MOVE.W  #0, CIN_TRAIN_TIMER

@@ -1,9 +1,6 @@
 ; ====================
 ;  **  TRAIN  GFX  **
 ; --------------------
-; By Aidan Garvey,
-;           2021-09-02
-; --------------------
 ; Palette and patterns
 ; for the train level
 ; ====================
@@ -413,9 +410,3 @@ ENGINE_ROW_8:
     ; 7 blank chars
     ; TRAIN_WHEEL_RIGHT
     ; 1 blank char
-
-
-; --------------
-; COLLISION MAPS
-; --------------
-

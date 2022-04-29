@@ -1,9 +1,6 @@
 ; =====================
 ; ** NIGHT LANDSCAPE **
 ; ---------------------
-; By Aidan Garvey,
-;            2022-02-27
-; ---------------------
 ; Palette and patterns
 ; for a hilly landscape
 ; at night
