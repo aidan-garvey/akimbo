@@ -24,7 +24,7 @@ Akimbo is a side-scrolling shooter being developed for the Sega Genesis/Mega Dri
 
 ## Running the game
 
-- I have built the game with S.N. Systems Software's SN 68k (asm68k.exe, patched by Nemesis). I cannot legally include a link to that assembler in this repository. In the near future, I would like to add instructions for building the game with a different, free assembler.
+- I have built the game with S.N. Systems Software's SN 68k (asm68k.exe, patched by Nemesis). In the near future, I would like to add instructions for building the game with a different, free assembler.
 - If you wish to try building the game with a different assembler, ensure it is built as a pure binary file. You should be able to run this with your emulator of choice.
 - The included build.bat file is what I use to assemble the game. It will only work for you if you have the same assembler as me, in the same directory as the project.
 - The emulator I use is [Gens KMod,](http://gendev.spritesmind.net/page-gensK.html) but any Sega Genesis emulator should run the game once built.
