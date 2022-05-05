@@ -58,17 +58,16 @@ MOVE_PLAYER:
     ORI.W   #$8000, (a2)    ; set onGround flag
     MOVE.W  #0, d1          ; set vy to 0
 
-    ;; if y speed is positive or 0 and player is on/below the floor, set onGround,
-    ;    ; move player up to the floor and set y speed to 0
+    ; if y speed is positive or 0 and player is on/below the floor, set onGround,
+        ; move player up to the floor and set y speed to 0
     ;TST.W   d1
     ;BLT     @Y_COLLISION_ABOVE
-    ;; check for collision with ground
-    ;; ...
+    ; check for collision with ground (use player y pos + 31 pixels for bottom of sprite)
     ;BRA     @Y_COLLISION_END
 @Y_COLLISION_ABOVE:
-    ;; if y speed is negative, check for collision with ceiling,
-    ;    ; adjust position and clear y speed if applicable
-    ;; ...
+    ; if y speed is negative, check for collision with ceiling,
+        ; adjust position and clear y speed if applicable
+    ; ...
 @Y_COLLISION_END:
     ; save values for Y, VY
     MOVE.W  d0, (a0)

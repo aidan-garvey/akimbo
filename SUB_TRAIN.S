@@ -3,7 +3,7 @@
 ; d0.W contains the timer value
 SUB_TRAIN_SHAKE_CAM:
     ; if timer % 4 == 0, shake cam depending on timer & 4
-    MOVEQ   #0, d1
+    ; MOVEQ   #0, d1
     MOVE.W  d0, d1
     ANDI.W  #3, d1
     BNE     @SHAKE_CAM_RET
@@ -20,7 +20,7 @@ SUB_TRAIN_SHAKE_CAM:
             ; shake down
             SUB.L   #$10001, d1
             MOVE.L  d1, (a0)
-            BRA     @SHAKE_CAM_RET
+            ; BRA     @SHAKE_CAM_RET
 @SHAKE_CAM_RET:
     RTS
 

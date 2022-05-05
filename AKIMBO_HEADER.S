@@ -77,7 +77,7 @@
 ; ----------------
 
     DC.B    'SEGA GENESIS    '
-    DC.B    '(C)SEGA 1991.MAR'
+    DC.B    '(C)SEGA 1990.OCT'
     DC.B    'AKIMBO                                          '
     DC.B    'AKIMBO                                          '
     DC.B    'GM 42069420-01'
@@ -87,5 +87,5 @@
     DC.L    $FF0000, $FFFFFF    ; RAM START, END (FIXED)
     DC.B    '            '      ; EXTERNAL RAM INFO
     DC.B    '            '      ; MODEM DATA
-    DC.B    'PROGRAMMED BY AIDAN GARVEY, 2021-09-18  '  ; MEMO
+    DC.B    'BY AIDAN GARVEY, 2021-09-18 - 2022-05-05'  ; MEMO
     DC.B    'JUE             '  ; COUNTRIES WHERE GAME IS RELEASED

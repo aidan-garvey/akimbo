@@ -62,4 +62,4 @@ PLAYER1_Y = $FF3102     ; 2B: Player 1's Y position on-screen
 PLAYER1_VX = $FF3104    ; 2B: Player 1's X velocity
 PLAYER1_VY = $FF3106    ; 2B: Player 1's Y velocity
 PLAYER1_FLAGS = $FF3108 ; 2B: Flags for P1
-    ; {onGround, xxx, direction, xxx xxxx xxxx}
+    ; {onGround, xx, v flip, direction (h flip), xxx xxxx xxxx}

@@ -137,17 +137,17 @@ CIN_TRAIN_INIT:
     JSR     CopyChar
     LEA.L   PLAYER_RED, a0
     JSR     CopyChar
-    LEA.L   PLAYER_RED, a0
+    LEA.L   PLAYER_CYAN, a0
     JSR     CopyChar
-    LEA.L   PLAYER_RED, a0
-    JSR     CopyChar
-    LEA.L   PLAYER_BLUE, a0
+    LEA.L   PLAYER_CYAN, a0
     JSR     CopyChar
     LEA.L   PLAYER_BLUE, a0
     JSR     CopyChar
     LEA.L   PLAYER_BLUE, a0
     JSR     CopyChar
-    LEA.L   PLAYER_BLUE, a0
+    LEA.L   PLAYER_DARKGREEN, a0
+    JSR     CopyChar
+    LEA.L   PLAYER_DARKGREEN, a0
     JSR     CopyChar
 
     ; clear BUFF_PLANE
