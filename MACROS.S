@@ -11,9 +11,9 @@
 
 ; Wait for VDP to finish queued DMA tasks
 WAIT_DMA: MACRO
-@WAIT_DMA_LOOP:
-    BTST    #1, VDP_CTRL+1  ; check if status register says "DMA BUSY"
-    BNE.S   @WAIT_DMA_LOOP  ; keep checking until done
+@WAIT_DMA_LOOP\@:
+    BTST    #1, VDP_CTRL+1   ; check if status register says "DMA BUSY"
+    BNE.S   @WAIT_DMA_LOOP\@ ; keep checking until done
     ENDM
     
 ; Reset VBLANKON, wait until it is set by our VB routine after the next VB
