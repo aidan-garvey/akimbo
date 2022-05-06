@@ -40,7 +40,7 @@ BUFF_HSCROLL = $FF1B30  ; Horizontal Scroll buffer (cell-by-cell)
                         ; 28 rows * 2 planes * 2 bytes = 112B
 BUFF_HSCROLLA = $FF1B30
 BUFF_HSCROLLB = $FF1B68
-BUFF_COLLISION = $FF1BA0; $100B: collision data for Scroll A
+; BUFF_COLLISION = $FF1BA0; $100B: collision data for Scroll A
 ; $FF1CA0:
 ; FREE SPACE
 ; $FF1D00: Space for cinematics variables (tentative)
@@ -63,3 +63,20 @@ PLAYER1_VX = $FF3104    ; 2B: Player 1's X velocity
 PLAYER1_VY = $FF3106    ; 2B: Player 1's Y velocity
 PLAYER1_FLAGS = $FF3108 ; 2B: Flags for P1
     ; {onGround, xx, v flip, direction (h flip), xxx xxxx xxxx}
+
+COLL_0 = $FF4000
+COLL_0_HEADER = $FF4000 ; 16B: Header describing contents of list
+COLL_0_LIST = $FF4010   ; 192B: List of collision lines
+; $FF40D0: 48B of padding
+COLL_1 = $FF4100
+COLL_1_HEADER = $FF4100 ; 16B: Header
+COLL_1_LIST = $FF4110   ; 192B: List of collision lines
+; $FF41D0: 48B of padding
+COLL_2 = $FF4200
+COLL_2_HEADER = $FF4200 ; 16B: Header
+COLL_2_LIST = $FF4210   ; 192B: List of collision lines
+; $FF42D0: 48B of padding
+COLL_3 = $FF4300
+COLL_3_HEADER = $FF4300 ; 16B: Header
+COLL_3_LIST = $FF4310   ; 192B: List of collision lines
+; $FF43D0

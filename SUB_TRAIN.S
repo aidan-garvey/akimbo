@@ -108,8 +108,6 @@ SUB_TRAIN_UPDATE_MAP:
 
     MOVE.L  d0, d2
     MOVE.L  d1, d3
-    ;NEG.L   d2
-    ;NEG.L   d3
     ASR.L   #4, d2
     ASR.L   #4, d3
 
@@ -208,18 +206,33 @@ SUB_TRAIN_UNLOAD_CAR:
 
     POP     d0-d1
 
-    ; ** clear collision data for train car **
-    LEA.L   BUFF_COLLISION, a0
-    LSR.B   #4, d1
-    ADD.L   d1, a0
+    ; clear collision data for train car
 
-    ; need 32 rows of zeroes
-    MOVEQ   #0, d3
-    MOVEQ   #31, d2
-@UNLOAD_COLLISION_ROW:
-        MOVE.W  d3, (a0)
-        ADDQ    #8, a0
-        DBRA    d2, @UNLOAD_COLLISION_ROW
+    ; we'll fill the memory with zeroes
+    MOVEQ   #0, d0
+    ; convert d1 from multiple of $20 to multiple of $100
+    LSL.W   #3, d1
+    ; get offset in collision data for train car
+    LEA.L   COLL_0, a0
+    ADDA.W  d1, a0
+    ; we'll copy $D0 bytes = $34 longwords
+    MOVE.W  #$33, d2
+@UNLOAD_CAR_COLL_LOOP:
+    MOVE.L  d0, (a0)+
+    DBRA    d2, @UNLOAD_CAR_COLL_LOOP
+
+;    ; ** clear collision data for train car **
+;    LEA.L   BUFF_COLLISION, a0
+;    LSR.B   #4, d1
+;    ADD.L   d1, a0
+;
+;    ; need 32 rows of zeroes
+;    MOVEQ   #0, d3
+;    MOVEQ   #31, d2
+;@UNLOAD_COLLISION_ROW:
+;        MOVE.W  d3, (a0)
+;        ADDQ    #8, a0
+;        DBRA    d2, @UNLOAD_COLLISION_ROW
 
     RTS
 
@@ -329,31 +342,47 @@ SUB_TRAIN_LOAD_CAR:
 
     POP     d0-d1
 
-    ; load collision data into BUFF_COLLISION
-    LEA.L   BUFF_COLLISION, a0
-    LSR.B   #4, d1  ; convert d1 to 0, 2, 4 or 6
-    ADD.L   d1, a0  ; a0 points to horizontal offset for current train car
-    
-    ; we need 24 rows of zeroes
-    MOVE.W  #0, d2
-    MOVE.W  #23, d3
-@COLLISION_EMPTY_LOOP:
-    MOVE.W  d2, (a0)
-    ; jump to next row
-    ADDQ    #8, a0
-    DBRA    d3, @COLLISION_EMPTY_LOOP
+    ; transfer collision data from COLL_TRAIN to RAM
 
-    ; we need 6 rows of $FFFE
-    MOVE.W  #$FFFE, d2
-    MOVE.W  #5, d3
-@COLLISION_MAIN_LOOP:
-    MOVE.W  d2, (a0)
-    ADDQ    #8, a0
-    DBRA    d3, @COLLISION_MAIN_LOOP
+    ; d1 is $00, $20, $40 or $60
+    ; in RAM, collision slots separated by $100
+    LSL.W   #3, d1
+    ; a1 points to collision data to copy
+    LEA.L   COLL_TRAIN_EXT, a1
+    ; a0 points to destination
+    LEA.L   COLL_0, a0
+    ADDA.W  d1, a0
+    ; we will copy over $D0 bytes, $34 longwords
+    MOVE.W  #$33, d0
+@LOAD_CAR_COLL_LOOP:
+    MOVE.L  (a1)+, (a0)+
+    DBRA    d0, @LOAD_CAR_COLL_LOOP
 
-    ; need 2 rows of $FFFF
-    MOVE.W  #$FFFF, (a0)
-    ADDQ    #8, a0
-    MOVE.W  #$FFFF, (a0)
+;    ; load collision data into BUFF_COLLISION
+;    LEA.L   BUFF_COLLISION, a0
+;    LSR.B   #4, d1  ; convert d1 to 0, 2, 4 or 6
+;    ADD.L   d1, a0  ; a0 points to horizontal offset for current train car
+;    
+;    ; we need 24 rows of zeroes
+;    MOVE.W  #0, d2
+;    MOVE.W  #23, d3
+;@COLLISION_EMPTY_LOOP:
+;    MOVE.W  d2, (a0)
+;    ; jump to next row
+;    ADDQ    #8, a0
+;    DBRA    d3, @COLLISION_EMPTY_LOOP
+;
+;    ; we need 6 rows of $FFFE
+;    MOVE.W  #$FFFE, d2
+;    MOVE.W  #5, d3
+;@COLLISION_MAIN_LOOP:
+;    MOVE.W  d2, (a0)
+;    ADDQ    #8, a0
+;    DBRA    d3, @COLLISION_MAIN_LOOP
+;
+;    ; need 2 rows of $FFFF
+;    MOVE.W  #$FFFF, (a0)
+;    ADDQ    #8, a0
+;    MOVE.W  #$FFFF, (a0)
 
     RTS

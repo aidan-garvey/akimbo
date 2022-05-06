@@ -122,7 +122,7 @@ CopyChar:
 ; **********************
     ; Constants for train level
     INCLUDE EQU_TRAIN.S
-    ; Helpful subroutines for train level
+    ; Main subroutines for train level
     INCLUDE SUB_TRAIN.S
     ; Cinematic for train arriving
     INCLUDE CIN_TRAIN.S
@@ -140,3 +140,5 @@ CopyChar:
     INCLUDE TRAINGFX.S
     ; Night landscape patterns & palette
     INCLUDE LAND_NIGHT.S
+    ; Collision data for train
+    INCLUDE COLL_TRAIN.S
