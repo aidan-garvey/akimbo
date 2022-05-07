@@ -50,20 +50,27 @@ MOVE_PLAYER:
     ; apply y speed to y position
     ADD.W   d1, d0
 
-;    ; Quick and dirty collision checking: if y pos is below train cars, there is a collision with the ground
-;    CMPI.W  #$F00, d0
-;    BLT     @Y_COLLISION_END
-;    ; if on/below ground:
-;    MOVE.W  #$F00, d0       ; move player to ground
-;    ORI.W   #$8000, (a2)    ; set onGround flag
-;    MOVE.W  #0, d1          ; set vy to 0
-
     ; if y speed is positive or 0 and player is on/below the floor, set onGround,
         ; move player up to the floor and set y speed to 0
     TST.W   d1
     BLT     @Y_COLLISION_ABOVE
     ; check for collision with ground (upwards-facing lines)
+    ; calculate current collision slot
+    MOVEQ   #0, d3
+    MOVE.W  (PLAYER1_X), d3
+    ADD.L   (MAP_X), d3
+    ASR.L   #4, d3
+    ;MOVE.L  (MAP_X), d3
+    ;ADD.W   (PLAYER1_X), d3
+    ;LSR.W   #4, d3  ; change to pixel precision
     JSR     DETECT_COLLISION_UP
+
+    ADDQ.L  #7, d3
+    JSR     DETECT_COLLISION_UP
+
+    ADDQ.L  #8, d3
+    JSR     DETECT_COLLISION_UP
+
     BRA     @Y_COLLISION_END
 @Y_COLLISION_ABOVE:
     ; if y speed is negative, check for collision with ceiling,
