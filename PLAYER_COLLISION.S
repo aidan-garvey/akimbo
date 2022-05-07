@@ -42,7 +42,7 @@ DETECT_COLLISION_UP:
     ADDA.W  d2, a0
     ; d2.W is now the number of up lines
     SWAP    d2
-    TST.W   d2
+    TST.W   d2  ; if there are 0 lines, return
     BEQ     @DETECT_COLLISION_UP_DONE
     ; subtract 1 for the loop
     SUBQ.W  #1, d2
