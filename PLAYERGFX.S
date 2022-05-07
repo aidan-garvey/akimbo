@@ -71,15 +71,3 @@ PLAYER_DARKGREEN:
         DC.L    $44444444
         DC.L    $44444444
         DC.L    $44444444
-
-
-; --------
-; PATTERNS
-; --------
-; Uses palette 0
-; Uses characters starting with cell $0
-
-PLAYER_BACK:    ; (copy 4 times)
-        DC.W    $0001
-PLAYER_FRONT:   ; (copy 4 times)
-        DC.W    $0002

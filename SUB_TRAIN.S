@@ -37,10 +37,10 @@ SUB_TRAIN_PLAYER_SPRITE:
 
     ; adjust player's y position by same rules as camera shake
         ; (see above subroutine for more info)
-    MOVE.L  GAME_TICK, d2
-    ANDI.W  #$0004, d2
-    LSR.W   #2, d2
-    ADD.W   d2, d1
+    ;MOVE.L  GAME_TICK, d2
+    ;ANDI.W  #$0004, d2
+    ;LSR.W   #2, d2
+    ;ADD.W   d2, d1
 
     ; save data to sprite buffer
     LEA.L   BUFF_SPRITES, a0
@@ -80,7 +80,7 @@ SUB_TRAIN_SCROLL_B:
     ; scroll left by 16px
     SUB.W   #16, d0     ; d0 holds tracks scroll value
     MOVE.W  d0, d1
-    LSR.W   #4, d1      ; d1 holds sky scroll value (moves 1/16th the speed of tracks)
+    LSR.W   #7, d1      ; d1 holds sky scroll value (moves 1/16th the speed of tracks)
 
     LEA.L   BUFF_HSCROLLB, a0
 

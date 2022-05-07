@@ -48,7 +48,7 @@ CIN_TRAIN_INIT:
     ; load landscape graphics into vram
     ; starting at cell $201 (address $4020)
     MOVE.L  #LAND_NIGHT_CHARS, d0
-    MOVE.W  #16*8, d1
+    MOVE.W  #16*5, d1
     MOVE.W  #$4020, d2
     
     JSR     DMADump
@@ -57,30 +57,83 @@ CIN_TRAIN_INIT:
     ; buffer, DMA transfer it.
     LEA.L   BUFF_PLANE, a0
     
-    ; pattern repeats 15 times vertically
-    MOVE.W  #14, d0
-@NIGHT_SKY_ROW:
-    ; pattern repeats 16 times horizontally
-    MOVE.W  #15, d1
-@SKY_ROW_1:
-    LEA.L   STARS_PATTERN_ROW1, a1
+    ; pattern consists of 30*64 tiles
+    MOVE.W  #30*64-1, d0
+    MOVEQ   #0, d1  ; counter for small stars
+    MOVEQ   #0, d2  ; counter for large stars
+    MOVE.W  (SMALL_STAR_PATTERN), d3
+    MOVE.W  (LARGE_STAR_PATTERN), d4
+    MOVEQ   #0, d5  ; used as a pattern for no stars
+    MOVEQ   #17, d6  ; used as limit for large star counter
+    MOVEQ   #9, d7  ; used as limit for small star counter
 
-    MOVE.L  (a1)+, (a0)+
-    MOVE.L  (a1)+, (a0)+
-    
-    DBRA    d1, @SKY_ROW_1
-    
-    MOVE.W  #15, d1
-@SKY_ROW_2:
-    LEA.L   STARS_PATTERN_ROW2, a1
-    
-    MOVE.L  (a1)+, (a0)+
-    MOVE.L  (a1)+, (a0)+
-    
-    DBRA    d1, @SKY_ROW_2
-    
-    ; start new row of pattern
-    DBRA    d0, @NIGHT_SKY_ROW
+@NIGHT_SKY_LOOP:
+    CMP.W   d7, d1
+    BNE     @LARGE_STAR_CHECK
+    ; if d2 is also at the limit, reset it
+    ; CMPI.W  #38, d2
+    CMP.B   d6, d2
+    BNE     @SMALL_STAR_PLACE
+    MOVEQ   #0, d2
+    BCHG    #2, d6
+@SMALL_STAR_PLACE:
+    BCHG    #1, d7
+    MOVEQ   #0, d1
+    MOVE.W  d3, (a0)+
+    BRA     @NIGHT_SKY_STEP
+@LARGE_STAR_CHECK:
+    ; CMPI.W  #38, d2
+    CMP.B   d6, d2
+    BNE     @NO_STAR_PLACE
+    MOVEQ   #0, d2
+    BCHG    #1, d6
+    MOVE.W  d4, (a0)+
+    BRA     @NIGHT_SKY_STEP
+@NO_STAR_PLACE:
+    MOVE.W  d5, (a0)+
+@NIGHT_SKY_STEP:
+    ADDQ.W  #1, d1
+    ADDQ.W  #1, d2
+    DBRA    d0, @NIGHT_SKY_LOOP
+
+;    ; pattern repeats 15 times vertically
+;    MOVE.W  #14, d0
+;@NIGHT_SKY_ROW:
+;    ; pattern repeats 16 times horizontally
+;    MOVE.W  #15, d1
+;@SKY_ROW_1:
+;    ; LEA.L   STARS_PATTERN_ROW1, a1
+;    LEA.L   LARGE_STAR_PATTERN, a1
+;
+;    ; MOVE.L  (a1)+, (a0)+
+;    ; MOVE.L  (a1)+, (a0)+
+;
+;    MOVE.W  (a1), d2
+;    SWAP    d2
+;    MOVE.W  (a1), d2
+;    MOVE.L  d2, (a0)+
+;    MOVE.L  d2, (a0)+
+;
+;    DBRA    d1, @SKY_ROW_1
+;    
+;    MOVE.W  #15, d1
+;@SKY_ROW_2:
+;    ; LEA.L   STARS_PATTERN_ROW2, a1
+;    LEA.L   SMALL_STAR_PATTERN, a1
+;   
+;    ; MOVE.L  (a1)+, (a0)+
+;    ; MOVE.L  (a1)+, (a0)+
+;
+;    MOVE.W  (a1), d2
+;    SWAP    d2
+;    MOVE.W  (a1), d2
+;    MOVE.L  d2, (a0)+
+;    MOVE.L  d2, (a0)+
+;    
+;    DBRA    d1, @SKY_ROW_2
+;    
+;    ; start new row of pattern
+;    DBRA    d0, @NIGHT_SKY_ROW
     
     ; ** do a row of train tracks **
     ; a1 will have first 2 tiles
@@ -445,12 +498,12 @@ CIN_TRAIN_2:
 @CIN_TRAIN_2_RET:
     RTS
 
-; --------------------------------------------------------
-; continue shaking camera and scrolling train for 1 second
+; ---------------------------------------------------------
+; continue shaking camera and scrolling train for 2 seconds
 CIN_TRAIN_3_WAIT:
     MOVEQ   #0, d0
     MOVE.W  CIN_TRAIN_TIMER, d0
-    ADD.W    #1, d0
+    ADD.W   #1, d0
     CMPI.W  #180, d0
     BGT     @CIN_WAIT_3_NEXT
     MOVE.W  d0, CIN_TRAIN_TIMER
@@ -517,7 +570,7 @@ CIN_TRAIN_3:
     SUB.W   d4, d3      ; d3 holds tracks scroll val for this frame
     ; make sky scroll at 1/16 the speed of the tracks
     MOVE.W  d3, d4
-    LSR.W   #4, d4      ; d4 holds sky scroll val for this frame
+    LSR.W   #7, d4      ; d4 holds sky scroll val for this frame
     
     ; train slanting: go from every cell, to every 2 cells, ..., 16 cells, none
     ; 1, 2, 4, 8, 16, 32 (none): 6 vals

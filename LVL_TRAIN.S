@@ -33,6 +33,8 @@ LVL_TRAIN_INIT:
     ; start game loop next frame
     MOVE.L  #LVL_TRAIN_1, MAIN_VECTOR
 
+    ADDI.L  #$10001, (SCROLL_Y)
+
     RTS
 
 LVL_TRAIN_1:
@@ -41,7 +43,7 @@ LVL_TRAIN_1:
     MOVE.L  d0, GAME_TICK
 
     ; apply constant scrolling effects
-    JSR     SUB_TRAIN_SHAKE_CAM
+    ; JSR     SUB_TRAIN_SHAKE_CAM
     JSR     SUB_TRAIN_SCROLL_B
 
     ; handle player movement

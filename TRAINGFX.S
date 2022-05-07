@@ -9,7 +9,7 @@
 ; PALETTE
 ; -------
 TRAIN_PAL:
-    DC.W $0ECA  ; 0: TRANSPARENT, sky blue for... well... the sky.
+    DC.W $0ECA  ; 0: TRANSPARENT / SKY BLUE
     DC.W $0AAA  ; 1: V. LIGHT GRAY for exterior highlights
     DC.W $0000  ; 2: BLACK for various details
     DC.W $0888  ; 3: LIGHT GRAY for exterior colour
