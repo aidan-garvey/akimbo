@@ -23,5 +23,5 @@ COLL_TRAIN_EXT:
     DC.W    $0, $F0, $12F
     
     ; list of right-facing lines: x, yStart, yEnd
-    DC.W    $77, $F0, $11F
     DC.W    $7F, $120, $12F
+    DC.W    $77, $F0, $11F

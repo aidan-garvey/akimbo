@@ -51,6 +51,11 @@
 ; PLAYER MOVEMENT SUBROUTINE
 ; **************************
     INCLUDE MOVE_PLAYER.S
+
+; ******************************
+; PLAYER-MAP COLLISION DETECTION
+; ******************************
+    INCLUDE PLAYER_COLLISION.S
     
 ; *******************
 ; GAME INITIALIZATION
