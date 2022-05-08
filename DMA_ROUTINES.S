@@ -56,7 +56,7 @@ AddToDMAQueue:
     
     ; Check if we're crossing a 128KB boundary ($010000, $020000, etc)
     ; If so, we need to split the DMA request at that boundary
-    MOVEQ   #0, d3  ; clear d3 so we can perform long math with it later
+    MOVEQ   #0, d3  ; clear d3 so we can perform long operations with it later
     MOVE.W  d0, d3
     ADD.W   d1, d3
     ADD.W   d1, d3  ; add d1 twice because it contains the size in words
@@ -68,8 +68,8 @@ AddToDMAQueue:
     ; if d3 > 0 and the carry bit is set, we are crossing a boundary 
     
     BEQ DMANoSplit  ; d3 = 0 (end of source could be $10000, $20000, etc)
-    BCS DMASplit    ; d3 > 0 and carry set means we went from $0xxxx - $1xxxx, or $1xxxx - $2xxxx, etc)
-    BRA DMANoSplit  ; d3 > 0 and carry isn't set means we stayed in $0xxxx, or $1xxxx, etc)
+    BCS DMASplit    ; d3 > 0 and carry set means we went from $0xxxx - $1xxxx, or $1xxxx - $2xxxx, etc
+    BRA DMANoSplit  ; d3 > 0 and carry isn't set means we stayed in $0xxxx, or $1xxxx, etc
     
 DMASplit:
     ; from previous calculations, d3 is already the
@@ -111,8 +111,6 @@ AddToDMAQueue_RETURN:
 ; a0 = queue address
 ; after execution, a0 = next queue address
 SubmitDMAReq:
-    ; fill upper byte of source address with 1's
-    ; ORI.L   #$FF000000, d0
     ; copy source address
     MOVE.L  d0, (a0)+
     ; copy data size
@@ -166,7 +164,7 @@ FlushDMAQueue:
 ; --------------------------------
 DMADump:
     LEA.L   VDP_CTRL, a1
-    AND.L   #$00FFFFFF, d0  ; don't allow invalid address
+    ANDI.L  #$00FFFFFF, d0  ; don't allow invalid address
     LEA.L   CURR_DMA_SRC+10, a0
     
     ; take Z80 off bus
@@ -181,9 +179,9 @@ DMADump:
     LSR.W   #2, d2
     SWAP    d2
     ; make sure only valid bits set
-    AND.W   #$3, d2
+    ANDI.W  #$3, d2
     ; add info to VDP_CTRL write: RAM selection, DMA mode
-    OR.L    #$40000080, d2
+    ORI.L   #$40000080, d2
     
     ; move high byte of size to (a0 - 3), low byte to (a0 - 1)
     MOVEP.W d1, -3(a0)

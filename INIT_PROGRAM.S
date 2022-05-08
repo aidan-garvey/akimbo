@@ -13,25 +13,29 @@ CODE_START:
     
     MOVE.B  (HW_VERSION),d0 ; get hardware version
     ANDI.B  #$F, d0         ; version number is in last 4 bits
-    BEQ.B   SecurityV1Skip  ; next step not needed by v.1 HW
+    BEQ.B   SecurityV1Skip  ; next step not needed by v.1 hardware
     MOVE.L  #"SEGA",$A14000
 SecurityV1Skip:
 
     ; when we write to VDP, we want addresses to increment by 2
     VDP_REG 15, %00000010
     
-    JSR CLEAR_CRAM
+    LEA.L   STACK_END, SP       ; init stack pointer
+
+    JSR     CLEAR_CRAM
     
-Clear68kRAM:
+    ; *******************
+    ; ** Clear 68k RAM **
+    ; *******************
     LEA.L   RAM_BASE, a0        ; Begin clearing at start of work ram
     MOVE.W  #(RAM_SIZE/4)-1, d0 ; size of work ram in longwords minus 1
 Clear68kRAMLoop:
     MOVE.L  d1, (a0)+           ; set a LW of RAM to 0
     DBRA    d0, Clear68kRAMLoop
     
-    LEA.L   STACK_END, SP       ; init stack pointer
-    
-InitZ80:
+    ; ********************
+    ; ** Initialize Z80 **
+    ; ********************
     MOVE.W  #$100, d0       ; value for controlling Z80
     LEA.L   Z80_BUSREQ, a0  ; location to remove z80 from bus
     LEA.L   Z80_RESET, a1   ; location to reset z80
@@ -49,17 +53,18 @@ InitZ80Wait:
     CLR.W   (a0)        ; cancel bus request
     MOVE.W  d0, (a1)    ; cancel reset request
     
-; FlushDMA:
+    ; ***************
+    ; ** Flush DMA **
+    ; ***************
     MOVE.W  #$2300, SR  ; allow DMA
     WAIT_DMA
     MOVE.W  #$2700, SR  ; stop DMA
     
     MOVE.L  #VBDUMMY, VBVECTOR  ; while setting up system, don't need to do anything during VBI
     
-; TODO: Register 15 probably doesn't need to be first AND last
-InitVDPRegisters:
-    VDP_REG 15, %00000010   ; ADDRESSES INCREMENTED BY 2 AFTER RAM ACCESS
-    
+    ; ******************************
+    ; ** Initialize VDP Registers **
+    ; ******************************
     VDP_REG 00, %00000100   ; DISABLE H-INT, ENABLE "READ, H, V COUNTER"
     VDP_REG 01, %00000100   ; DISABLE DISPLAY, DISABLE V-INT, DISABLE DMA, V28 CELLS (NTSC)
     VDP_REG 02, (VRAM_SCROLLA>>10)  ; SCROLL A PATTERN TABLE: $C000
@@ -75,28 +80,33 @@ InitVDPRegisters:
     VDP_REG 12, %10000001   ; H40 CELLS, DISABLE SHADOW/HILIGHT, NO INTERLACE
     VDP_REG 13, (VRAM_HSCROLL>>10)  ; HSCROLL DATA TABLE: $BC00
     VDP_REG 14, %00000000   ; UNUSED
+    VDP_REG 15, %00000010   ; ADDRESSES INCREMENTED BY 2 AFTER RAM ACCESS
     VDP_REG 16, %00000001   ; SCROLL SIZE: V32*H64
     VDP_REG 17, %00000000   ; WINDOW IS 0 CELLS FROM LEFT
     VDP_REG 18, %00000000   ; WINDOW IS 0 CELLS FROM TOP
     
-    VDP_REG 15, %00000010   ; ADDRESSES INCREMENTED BY 2 AFTER RAM ACCESS
-    
+    ; **********************
+    ; ** Clear VDP Memory **
+    ; **********************
     JSR CLEAR_CRAM
     JSR CLEAR_VSRAM
     JSR CLEAR_VRAM
     
     MOVE.W  #$2000, SR      ; Enable all interrupts
-    ; TODO: the write to reg 1 is the same as the one above. Remove?
     VDP_REG 1, %01100100    ; ENABLE DISPLAY & V-INT, DISABLE DMA, V28 CELLS
-    VDP_REG 0, %00000100    ; DISABLE H-INT, ENABLE "READ, H, V COUNTER"
     
-PreventResetBug:
-    MOVE.W  #50-1, d0
+    ; ***********************
+    ; ** Prevent Reset Bug **
+    ; ***********************
+    MOVE.W  #49, d0
 PreventResetBugLoop:
     WAIT_VB
     DBRA    d0, PreventResetBugLoop
 
-InitJoys:
+    ; ************************
+    ; ** Initialize Joypads **
+    ; ************************
+
 ;   ** SETUP S-CTRL 1, 2, EXP **
     ; Baud rate: 4800bps (max)
     ; TR: Parallel mode
@@ -126,8 +136,9 @@ InitJoys:
     MOVE.B  #$40, JOY2_DATA
     MOVE.B  #$40, JOYX_DATA
     
-InitDMARegCodes:
-; ** Copy VDP register codes to top of DMA queue **
+    ; ************************************************
+    ; ** Initialize VDP Register Codes in DMA Queue **
+    ; ************************************************
     ; Copy register codes 20, 19 to LEN, LEN + 2
     MOVE.L  #$94009300, CURR_DMA_LEN
     ; Copy register codes 23, 22, 21 to SOURCE +0, +2, +4
@@ -165,7 +176,9 @@ InitDMARegCodes:
     ;MOVE.W  #32, d1
     ;JSR     CL_VRAM_BLOCK
 
-InitSpriteTable:
+    ; *****************************
+    ; ** Initialize Sprite Table **
+    ; *****************************
     LEA.L   VDP_DATA, a1
     ; Write to VRAM at location of sprite attribute table
     VDP_ACCESS  VDP_W_VRAM, VRAM_SPRITETBL
@@ -176,10 +189,11 @@ InitSpriteTable:
     MOVE.W  #0, (a1)
     MOVE.W  #1, (a1)
 
-    ; do game-specific initialization
+    ; do game-specific initialization (in MAIN.S)
     JSR     GAME_INIT
 
-StartMainProgram:
-    ; enable VBI routine
+    ; **************************
+    ; ** Start Main Game Loop **
+    ; **************************
     MOVE.L  #VBMAIN, VBVECTOR
     JMP     MAIN
