@@ -225,9 +225,11 @@ CIN_TRAIN_1:
         ; ** SECOND ROW **
         LEA.L   BUFF_TRAINCAR_4+$80, a0
         ; need 1 SIDE_LEFT and 5 FILLs
-        MOVE.L  d2, (a0)+   ; side, 1 fill
-        MOVE.L  d3, (a0)+   ; 3 fills
-        MOVE.L  d3, (a0)+   ; 5 fills
+        ;MOVE.L  d2, (a0)+   ; side, 1 fill
+        ;MOVE.L  d3, (a0)+   ; 3 fills
+        ;MOVE.L  d3, (a0)+   ; 5 fills
+        MOVEQ   #1, d0
+        BSR     @CIN_TRAIN_FRONT_ROW
 
         ; a2 is pointing at ENGINE_ROW_2
         MOVE.L  (a2)+, (a0)+
@@ -236,10 +238,13 @@ CIN_TRAIN_1:
         ; ** THIRD ROW **
         LEA.L   BUFF_TRAINCAR_4+$100, a0
         ; need 1 SIDE_LEFT and 6 FILLs
-        MOVE.L  d2, (a0)+   ; side, 1 fill
-        MOVE.L  d3, (a0)+   ; 3 fills
-        MOVE.L  d3, (a0)+   ; 5 
-        MOVE.W  d3, (a0)+   ; 6 fills
+        ;MOVE.L  d2, (a0)+   ; side, 1 fill
+        ;MOVE.L  d3, (a0)+   ; 3 fills
+        ;MOVE.L  d3, (a0)+   ; 5 
+        ;MOVE.W  d3, (a0)+   ; 6 fills
+        MOVEQ   #1, d0
+        BSR     @CIN_TRAIN_FRONT_ROW
+        MOVE.W  d3, (a0)+
 
         ; copy ENGINE_ROW_3
         MOVE.L  (a2)+, (a0)+
@@ -249,12 +254,16 @@ CIN_TRAIN_1:
         ; ** FOURTH ROW **
         LEA.L   BUFF_TRAINCAR_4+$180, a0
         ; need 1 side and 10 fills
-        MOVE.L  d2, (a0)+   ; 1 
-        MOVE.L  d3, (a0)+   ; 3
-        MOVE.L  d3, (a0)+   ; 5
-        MOVE.L  d3, (a0)+   ; 7
-        MOVE.L  d3, (a0)+   ; 9
-        MOVE.W  d3, (a0)+   ; 10
+        ;MOVE.L  d2, (a0)+   ; 1 
+        ;MOVE.L  d3, (a0)+   ; 3
+        ;MOVE.L  d3, (a0)+   ; 5
+        ;MOVE.L  d3, (a0)+   ; 7
+        ;MOVE.L  d3, (a0)+   ; 9
+        ;MOVE.W  d3, (a0)+   ; 10
+        MOVEQ   #3, d0
+        BSR     @CIN_TRAIN_FRONT_ROW
+        MOVE.W  d3, (a0)+
+
         ; ENGINE_ROW_4
         MOVE.L  (a2)+, (a0)+
         MOVE.W  (a2)+, (a0)+
@@ -262,27 +271,32 @@ CIN_TRAIN_1:
         ; ** FIFTH ROW **
         LEA.L   BUFF_TRAINCAR_4+$200, a0
         ; need 1 side and 13 fills
-        MOVE.L  d2, (a0)+   ; 1
-        MOVE.L  d3, (a0)+   ; 3
-        MOVE.L  d3, (a0)+   ; 5
-        MOVE.L  d3, (a0)+   ; 7
-        MOVE.L  d3, (a0)+   ; 9
-        MOVE.L  d3, (a0)+   ; 11
-        MOVE.L  d3, (a0)+   ; 13
+        ;MOVE.L  d2, (a0)+   ; 1
+        ;MOVE.L  d3, (a0)+   ; 3
+        ;MOVE.L  d3, (a0)+   ; 5
+        ;MOVE.L  d3, (a0)+   ; 7
+        ;MOVE.L  d3, (a0)+   ; 9
+        ;MOVE.L  d3, (a0)+   ; 11
+        ;MOVE.L  d3, (a0)+   ; 13
+        MOVEQ   #5, d0
+        BSR     @CIN_TRAIN_FRONT_ROW
 
         MOVE.L  (a2)+, (a0)+
 
         ; ** SIXTH ROW **
         LEA.L   BUFF_TRAINCAR_4+$280, a0
         ; need 1 side and 14 fills
-        MOVE.L  d2, (a0)+   ; 1
-        MOVE.L  d3, (a0)+
-        MOVE.L  d3, (a0)+   ; 5
-        MOVE.L  d3, (a0)+
-        MOVE.L  d3, (a0)+   ; 9
-        MOVE.L  d3, (a0)+
-        MOVE.L  d3, (a0)+   ; 13
-        MOVE.W  d3, (a0)+   ; 14
+        ;MOVE.L  d2, (a0)+   ; 1
+        ;MOVE.L  d3, (a0)+
+        ;MOVE.L  d3, (a0)+   ; 5
+        ;MOVE.L  d3, (a0)+
+        ;MOVE.L  d3, (a0)+   ; 9
+        ;MOVE.L  d3, (a0)+
+        ;MOVE.L  d3, (a0)+   ; 13
+        ;MOVE.W  d3, (a0)+   ; 14
+        MOVEQ   #5, d0
+        BSR     @CIN_TRAIN_FRONT_ROW
+        MOVE.W  d3, (a0)+
 
         MOVE.W  (a2)+, (a0)
 
@@ -325,6 +339,16 @@ CIN_TRAIN_1:
         JSR     AddToDMAQueue
 
 @CIN_TRAIN_1_RETURN:
+    RTS
+
+; ------------------------------------------
+; Copy d2.L to (a0)+ once, then copy d3.L to
+; (a0)+ the number of times in d0 (plus one)
+@CIN_TRAIN_FRONT_ROW:
+    MOVE.L  d2, (a0)+
+@CIN_TRAIN_FRONT_ROW_LOOP:
+    MOVE.L  d3, (a0)+
+    DBRA    d0, @CIN_TRAIN_FRONT_ROW_LOOP
     RTS
 
 ; -----------------------------------------------------------------------
