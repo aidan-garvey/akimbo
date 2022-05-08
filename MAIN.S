@@ -94,33 +94,21 @@ GAME_INIT:
     
     RTS
     
-; ************
-; MAIN PROGRAM
-; ************
+; **************
+; MAIN GAME LOOP
+; **************
 MAIN:
     ; main loop should only happen once per frame
     WAIT_VB
 
+    ; get joypad input
     JSR     READJOY
     
     ; perform subroutine for current game state
     MOVE.L  MAIN_VECTOR, a0
     JSR     (a0)
 
-    JMP     MAIN
-    
-; a1 should contain address of VDP_DATA
-; a0 should contain starting address of first char
-CopyChar:
-    MOVE.L  (a0)+, (a1)
-    MOVE.L  (a0)+, (a1)
-    MOVE.L  (a0)+, (a1)
-    MOVE.L  (a0)+, (a1)
-    MOVE.L  (a0)+, (a1)
-    MOVE.L  (a0)+, (a1)
-    MOVE.L  (a0)+, (a1)
-    MOVE.L  (a0)+, (a1)
-    RTS
+    BRA     MAIN
     
 ; **********************
 ; GAME STATE SUBROUTINES

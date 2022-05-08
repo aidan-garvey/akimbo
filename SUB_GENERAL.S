@@ -6,29 +6,44 @@
 ; game-specific.
 ; *******************
 
-; TODO: LONGWORD writes, put VDP_DATA in a0 and move to there?
+; ---------------------------
+; CLEAR_CRAM: clears all CRAM
+; Thrashed: d0, d1, a0
+; ---------------------------
 CLEAR_CRAM:
     ; write to CRAM at base addr
     MOVE.L  #VDP_W_CRAM, VDP_CTRL
     MOVEQ   #0, d1
-    MOVE.W  #$3F, d0    ; $3F = 128B / 2 - 1 = 64W - 1
+    MOVE.W  #31, d0     ; 31 = 128 bytes / (4 bytes / long word) - 1
+    LEA.L   VDP_DATA, a0
 CL_CRAM_LOOP:
-    MOVE.W  d1, VDP_DATA
+    ; MOVE.W  d1, VDP_DATA
+    MOVE.L  d1, (a0)
     DBRA    d0, CL_CRAM_LOOP
     
     RTS
     
-; TODO: LONGWORD writes, put VDP_DATA in a0 and move to there?
+; -----------------------------
+; CLEAR_VSRAM: clears all VSRAM
+; Thrashed: d0, d1, a0
+; -----------------------------
 CLEAR_VSRAM:
     MOVE.L  #VDP_W_VSRAM, VDP_CTRL
     MOVEQ   #0, d1
-    MOVE.W  #39, d0     ; 39 = 80B / 2 - 1 = 40W - 1
+    ; MOVE.W  #39, d0     ; 39 = 80B / 2 - 1 = 40W - 1
+    MOVE.W  #19, d0     ; 19 = 80 bytes / (4 bytes / long word) - 1
+    LEA.L   VDP_DATA, a0
 CL_VSRAM_LOOP:
-    MOVE.W  d1, VDP_DATA
+    ; MOVE.W  d1, VDP_DATA
+    MOVE.L  d1, (a0)
     DBRA    d0, CL_VSRAM_LOOP
     
     RTS
     
+; ---------------------------
+; CLEAR_VRAM: clears all VRAM
+; Thrashed: d0, d1, a0
+; ---------------------------
 CLEAR_VRAM:
     MOVE.L  #VDP_W_VRAM, VDP_CTRL
     MOVEQ.L #0, d1
@@ -52,7 +67,7 @@ CL_VRAM_LOOP:
 ; CL_VRAM_BLOCK
 ; Clear a chunk of VRAM of any size,
 ; starting at any point
-
+;
 ; Parameters:
 ; d0.W: starting VRAM address
 ; d1.W: number of bytes to clear
@@ -117,4 +132,28 @@ DUMP_PALETTES_LOOP:
     MOVE.W  (a0)+, (a1)
     DBRA    d0, DUMP_PALETTES_LOOP
     
+    RTS
+
+; ----------------------------------
+; CopyChar:
+; Copy a single character into VRAM.
+; For larger amount of chars, DMA
+; should be used instead, especially
+; during gameplay.
+; 
+; Parameters:
+; a0: starting address of first char
+; a1: address of VDP_DATA register
+;
+; Thrashed: a0
+; ----------------------------------
+CopyChar:
+    MOVE.L  (a0)+, (a1)
+    MOVE.L  (a0)+, (a1)
+    MOVE.L  (a0)+, (a1)
+    MOVE.L  (a0)+, (a1)
+    MOVE.L  (a0)+, (a1)
+    MOVE.L  (a0)+, (a1)
+    MOVE.L  (a0)+, (a1)
+    MOVE.L  (a0)+, (a1)
     RTS

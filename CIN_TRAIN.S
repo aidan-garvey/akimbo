@@ -96,55 +96,16 @@ CIN_TRAIN_INIT:
     ADDQ.W  #1, d2
     DBRA    d0, @NIGHT_SKY_LOOP
 
-;    ; pattern repeats 15 times vertically
-;    MOVE.W  #14, d0
-;@NIGHT_SKY_ROW:
-;    ; pattern repeats 16 times horizontally
-;    MOVE.W  #15, d1
-;@SKY_ROW_1:
-;    ; LEA.L   STARS_PATTERN_ROW1, a1
-;    LEA.L   LARGE_STAR_PATTERN, a1
-;
-;    ; MOVE.L  (a1)+, (a0)+
-;    ; MOVE.L  (a1)+, (a0)+
-;
-;    MOVE.W  (a1), d2
-;    SWAP    d2
-;    MOVE.W  (a1), d2
-;    MOVE.L  d2, (a0)+
-;    MOVE.L  d2, (a0)+
-;
-;    DBRA    d1, @SKY_ROW_1
-;    
-;    MOVE.W  #15, d1
-;@SKY_ROW_2:
-;    ; LEA.L   STARS_PATTERN_ROW2, a1
-;    LEA.L   SMALL_STAR_PATTERN, a1
-;   
-;    ; MOVE.L  (a1)+, (a0)+
-;    ; MOVE.L  (a1)+, (a0)+
-;
-;    MOVE.W  (a1), d2
-;    SWAP    d2
-;    MOVE.W  (a1), d2
-;    MOVE.L  d2, (a0)+
-;    MOVE.L  d2, (a0)+
-;    
-;    DBRA    d1, @SKY_ROW_2
-;    
-;    ; start new row of pattern
-;    DBRA    d0, @NIGHT_SKY_ROW
-    
     ; ** do a row of train tracks **
     ; a1 will have first 2 tiles
     LEA.L   TRACKS_PATTERN_TOP, a1
     ; a2 will have second 2 tiles
     MOVE.L  a1, a2
-    ADD.L   #4, a2
+    ADDQ.W  #4, a2
 
     ; 64-wide plane, 4-wide pattern
     ; 16 repetitions
-    MOVE.W  #15, d0
+    MOVEQ   #15, d0
 @TRACKS_LOOP:
     MOVE.L  (a1), (a0)+
     MOVE.L  (a2), (a0)+
@@ -155,9 +116,9 @@ CIN_TRAIN_INIT:
     LEA.L   TRACKS_PATTERN_BOTTOM, a1
     ; a2 will have a tile without supports, and one with a support
     MOVE.L  a1, a2
-    ADD.L   #2, a2
+    ADDQ.W  #2, a2
     ; repeats 8 times
-    MOVE.W  #7, d0
+    MOVEQ   #7, d0
 @GROUND_LOOP:
     ; load in 7 tiles without supports, and 1 with a support
     MOVE.L  (a1), (a0)+
@@ -168,8 +129,8 @@ CIN_TRAIN_INIT:
     
     ; DMA transfer pattern to VRAM
     MOVE.L  #BUFF_PLANE, d0
-    MOVE.L  #$800, d1
-    MOVE.L  #VRAM_SCROLLB, d2
+    MOVE.W  #$800, d1
+    MOVE.W  #VRAM_SCROLLB, d2
     
     JSR     DMADump
     
@@ -214,10 +175,10 @@ CIN_TRAIN_INIT:
     
     RTS
 
-; -------------------------------------
-; HOLD FOR 1 SEC BEFORE ANIMATION PLAYS
+; ----------------------------------------
+; Hold for 1 second before animation plays
 CIN_TRAIN_WAIT_1:
-    ADD.W   #1, CIN_TRAIN_TIMER
+    ADDQ.W  #1, CIN_TRAIN_TIMER
     CMPI.W  #$60, CIN_TRAIN_TIMER
     BLT     @TRAIN_WAIT_1_RET
 
@@ -231,7 +192,7 @@ CIN_TRAIN_WAIT_1:
 ; PAN CAMERA DOWN TO TRAIN TRACKS
 CIN_TRAIN_1:
     ; increment timer
-    ADD.W   #1, CIN_TRAIN_TIMER
+    ADDQ.W  #1, CIN_TRAIN_TIMER
     ; increase Plane B vertical scroll by timer/4
     MOVE.W  CIN_TRAIN_TIMER, d0
     LSR.W   #2, d0
@@ -247,8 +208,6 @@ CIN_TRAIN_1:
         ; **** set up stage 2 by loading in front of train ****
 
         LEA.L   BUFF_TRAINCAR_4, a0
-        ; d1 will contain blank patterns
-        ; MOVEQ   #0, d1
         ; d2 will contain two very frequently used patterns
         MOVE.L  ENGINE_SIDE_LEFT, d2    ; (lower word is ENGINE_FILL)
         ; d3 will contain two copies of ENGINE_FILL
@@ -352,7 +311,7 @@ CIN_TRAIN_1:
         LEA.L   TRAIN_WHEEL_LEFT, a2
         MOVE.L  (a2)+, (a0)+
         MOVE.L  (a2)+, (a0)+
-        ADD.L   #14, a0 ; gap b/w wheels
+        ADDA.W  #14, a0 ; gap b/w wheels
         ; TRAIN_WHEEL_RIGHT
         MOVE.L  (a2)+, (a0)+
         MOVE.L  (a2)+, (a0)+
@@ -379,7 +338,7 @@ CIN_TRAIN_1:
 CIN_TRAIN_WAIT_2:
     ; increment timer
     MOVE.W  CIN_TRAIN_TIMER, d0
-    ADDQ    #1, d0
+    ADDQ.W  #1, d0
     ; if animation is done, get next stage ready
     CMPI.W  #$80, d0
     BGE     @TRAIN_WAIT_2_NEXT
@@ -423,7 +382,6 @@ CIN_TRAIN_WAIT_2:
         LEA.L   SCROLL_Y, a0
         MOVE.L  (a0), d1
         ; use bit d0[5] to check motion
-        ; BTST    #5, d2
         BTST    #5, d0
         BEQ     @W2_SHAKE_CAM_DOWN
             ; shake cam up:
@@ -447,7 +405,7 @@ CIN_TRAIN_WAIT_2:
 CIN_TRAIN_2:
     ; increment timer
     MOVE.L  CIN_TRAIN_TIMER, d0
-    ADDQ    #1, d0
+    ADDQ.W  #1, d0
     MOVE.L  d0, CIN_TRAIN_TIMER
     ; compare timer, load next stage of animation if applicable
     CMPI.W  #512/TRAIN_MAXSPEED, d0
@@ -480,10 +438,10 @@ CIN_TRAIN_2:
     LEA.L   BUFF_HSCROLL, a0
     MOVE.W  (a0),d1
     ADD.W   #TRAIN_MAXSPEED,d1
-    MOVE.W  #27,d2
+    MOVEQ   #27,d2
 @CIN_TRAIN_2_HLOOP:
         MOVE.W  d1, (a0)+
-        SUB.W   #1, d1      ; slant train to the right to create speed effect
+        SUBQ.W  #1, d1      ; slant train to the right to create speed effect
         DBRA    d2, @CIN_TRAIN_2_HLOOP
     
     JSR     SUB_TRAIN_SHAKE_CAM
@@ -503,7 +461,7 @@ CIN_TRAIN_2:
 CIN_TRAIN_3_WAIT:
     MOVEQ   #0, d0
     MOVE.W  CIN_TRAIN_TIMER, d0
-    ADD.W   #1, d0
+    ADDQ.W  #1, d0
     CMPI.W  #180, d0
     BGT     @CIN_WAIT_3_NEXT
     MOVE.W  d0, CIN_TRAIN_TIMER
@@ -512,10 +470,10 @@ CIN_TRAIN_3_WAIT:
     LEA.L   BUFF_HSCROLL, a0
     MOVE.W  (a0),d1
     ADD.W   #TRAIN_MAXSPEED,d1
-    MOVE.W  #27,d2
+    MOVEQ   #27,d2
 @CIN_WAIT_3_HLOOP:
         MOVE.W  d1, (a0)+
-        SUB.W   #1, d1      ; slant train to the right to create speed effect
+        SUBQ.W  #1, d1      ; slant train to the right to create speed effect
         DBRA    d2, @CIN_WAIT_3_HLOOP
 
     JSR     SUB_TRAIN_SHAKE_CAM
@@ -536,7 +494,7 @@ CIN_TRAIN_3_WAIT:
 ; NOTE: timer counts down from 512 for this phase
 CIN_TRAIN_3:
     MOVE.W  CIN_TRAIN_TIMER, d0
-    SUBQ    #1, d0
+    SUBQ.W  #1, d0
     MOVE.W  d0, CIN_TRAIN_TIMER
     CMPI.W  #0, d0
     BLT     @CIN_TRAIN_3_NEXT
@@ -545,14 +503,14 @@ CIN_TRAIN_3:
     JSR     SUB_TRAIN_SHAKE_CAM
 
     ; we will use fixed-point numbers for momentum
-        ; train: 1 digit after decimal
-        ; tracks: 2 digits after decimal
+        ; train: 1 digit of precision after the decimal
+        ; tracks: 2 digits of precision after the decimal
     ; adjust momentum every 8 frames
     MOVE.W  d0, d1
     ANDI.W  #7, d1
     BNE     @CIN_TRAIN_3_HSCROLL
-    SUB.W   #1, CIN_TRAIN_VEL
-    ADD.W   #1, CIN_BACK_VEL    ; BACK_VEL will be 64>>2, i.e. 16
+    SUBQ.W  #1, CIN_TRAIN_VEL
+    ADDQ.W  #1, CIN_BACK_VEL    ; BACK_VEL will be 64>>2, i.e. 16
 
     ; adjust HScroll
 @CIN_TRAIN_3_HSCROLL:
@@ -568,7 +526,7 @@ CIN_TRAIN_3:
     MOVE.W  CIN_BACK_VEL, d4
     LSR.W   #2, d4      ; 2 digits after the decimal
     SUB.W   d4, d3      ; d3 holds tracks scroll val for this frame
-    ; make sky scroll at 1/16 the speed of the tracks
+    ; make sky scroll at 1/128 the speed of the tracks
     MOVE.W  d3, d4
     LSR.W   #7, d4      ; d4 holds sky scroll val for this frame
     
@@ -649,31 +607,6 @@ CIN_TRAIN_3:
     MOVEQ   #$60, d1
     JSR     SUB_TRAIN_UNLOAD_CAR
     BRA     @CIN_TRAIN_3_RET
-
-    ; we'll be doing the fourth car
-    ;LEA.L   BUFF_TRAINCAR_4, a0
-    ;MOVEQ   #0, d3
-    ;MOVEQ   #$60, d4
-    ; eight rows
-    ;MOVEQ   #7, d1
-;@UNLOAD_CAR_ROW:
-        ; 16 tiles, 1 long = 2 tiles
-        ;MOVEQ   #7, d2
-;@UNLOAD_CAR_TILE:
-            ;MOVE.L  d3, (a0)+
-            ;DBRA    d2, @UNLOAD_CAR_TILE
-        ;ADD.L   d4, a0
-        ;DBRA    d1, @UNLOAD_CAR_ROW
-
-    ; get plane to update
-    ;MOVE.L  #BUFF_PLANE, d0
-    ;MOVE.W  #$800, d1
-    ;MOVE.W  #VRAM_SCROLLA, d2
-    ;LEA.L   DMA_QUEUE, a0
-
-    ;JSR     AddToDMAQueue
-
-    ;BRA     @CIN_TRAIN_3_RET
 
 @CIN_TRAIN_3_NEXT:
     MOVE.W  #0, CIN_TRAIN_TIMER
