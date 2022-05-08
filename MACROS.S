@@ -77,7 +77,7 @@ POP: MACRO
     ENDM
 
 ; Move source to dest if source is smaller
-; \1: source register
+; \1: source register or immediate value
 ; \2: dest register
 MIN: MACRO
     CMP.\0  \1, \2
@@ -87,7 +87,7 @@ MIN: MACRO
     ENDM
 
 ; Move source to dest if source is larger
-; \1: source register
+; \1: source register or immediate value
 ; \2: dest register
 MAX: MACRO
     CMP.\0  \1, \2
@@ -96,22 +96,3 @@ MAX: MACRO
 @END\@:
     ENDM
 
-; Set a register to the smallest of two values: itself, or an immediate value
-; \1: immediate value (user must include # symbol)
-; \2: destination register
-MINI: MACRO
-    CMP.\0  \1, \2
-    BLE     @END\@
-    MOVE.\0 \1, \2
-@END\@:
-    ENDM
-
-; Set a register to the largest of two values: itself, or an immediate value
-; \1: immediate value (user must include # symbol)
-; \2: destination register
-MAXI: MACRO
-    CMPI.\0 \1, \2
-    BGE     @END\@
-    MOVE.\0 \1, \2
-@END\@:
-    ENDM

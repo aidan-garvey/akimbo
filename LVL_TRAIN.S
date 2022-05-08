@@ -1,13 +1,6 @@
 
 LVL_TRAIN_INIT:
     MOVE.L  #0, GAME_TICK
-
-    ;; set MAP_X to current scroll value for plane A
-    ;MOVEQ   #0, d0
-    ;MOVE.W  BUFF_HSCROLLA, d0
-    ;LSL.L   #4, d0
-    ;NEG.L   d0
-    ;MOVE.L  d0, MAP_X
     
     ; start MAP_X at lowest positive number that is
     ; aligned with current horizontal scroll value
@@ -38,12 +31,10 @@ LVL_TRAIN_INIT:
     RTS
 
 LVL_TRAIN_1:
-    MOVE.L  GAME_TICK, d0
-    ADDQ    #1, d0
-    MOVE.L  d0, GAME_TICK
+    ADDQ.L  #1, (GAME_TICK)
 
     ; apply constant scrolling effects
-    ; JSR     SUB_TRAIN_SHAKE_CAM
+    ; JSR     SUB_TRAIN_SHAKE_CAM   ; if you want to re-enable shaky cam, GAME_TICK has to be in d0
     JSR     SUB_TRAIN_SCROLL_B
 
     ; handle player movement

@@ -2,7 +2,7 @@
 ; Detect a collision between the upwards-facing
 ; lines and the bottom of the player.
 ;   * d0.W = new Y position of the player.
-;   * d3.L = X position to check
+;   * d3.W = X position to check
 ;   * a2 = player's flags
 ;   
 ;   After execution:
@@ -17,10 +17,7 @@ DETECT_COLLISION_UP:
     ; d1 := old Y position of the player
     MOVE.W  PLAYER1_Y, d1
     LSR.W   #4, d1
-    ; calculate current collision slot
-    ; MOVE.L  (MAP_X), d3
-    ; ADD.W   (PLAYER1_X), d3
-    ; LSR.W   #4, d3  ; change to pixel precision
+    
     ; d4 := X coordinate within slot
     MOVE.W  d3, d4
     ANDI.W  #$007F, d4

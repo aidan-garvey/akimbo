@@ -62,15 +62,12 @@ MOVE_PLAYER:
     MOVE.W  (PLAYER1_X), d3
     ADD.L   (MAP_X), d3
     ASR.L   #4, d3
-    ;MOVE.L  (MAP_X), d3
-    ;ADD.W   (PLAYER1_X), d3
-    ;LSR.W   #4, d3  ; change to pixel precision
     JSR     DETECT_COLLISION_UP
 
-    ADDQ.L  #7, d3
+    ADDQ.W  #7, d3
     JSR     DETECT_COLLISION_UP
 
-    ADDQ.L  #8, d3
+    ADDQ.W  #8, d3
     JSR     DETECT_COLLISION_UP
 
     BRA     @Y_COLLISION_END
@@ -214,7 +211,7 @@ MOVE_PLAYER:
     SUBI.L  #(SCREEN_X_L+SCROLL_X_BOUND)<<4, d0
     BLE     @SCROLL_X_DONE
     ; limit scroll amount to SCROLL_SPEED
-    MINI.L  #SCROLL_SPEED, d0
+    MIN.L  #SCROLL_SPEED, d0
     ; scroll left by difference (to move the camera to the right)
     SUB.W   d0, (a0)
     ADD.L   d0, (a4)
@@ -224,7 +221,7 @@ MOVE_PLAYER:
     SUBI.L  #(SCREEN_X_R-SCROLL_X_BOUND)<<4, d0
     BGT     @SCROLL_X_DONE
     ; limit scroll amount to -SCROLL_SPEED
-    MAXI.L  #-SCROLL_SPEED, d0
+    MAX.L  #-SCROLL_SPEED, d0
     ; scroll right by difference (to move the camera to the right)
     SUB.W   d0, (a0)
     ADD.L   d0, (a4)
