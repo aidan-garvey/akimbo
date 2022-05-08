@@ -13,6 +13,8 @@ SCREEN_X_R = $1C0       ; x coord for right side of screen
 SCROLL_X_BOUND = $40    ; offset from screen edge for scrolling
 SCROLL_SPEED = 8<<4     ; max speed the screen can scroll at
 
+SCROLL_DIR_SPEED = 80   ; if player is travelling at this speed in either direction, scrolling
+                        ; direction depends on speed, not the direction the player is facing
 
 ; clear onGround
 ; add gravity to y speed
@@ -199,11 +201,12 @@ MOVE_PLAYER:
     ; load BUFF_HSCROLLA into a3
     LEA.L   BUFF_HSCROLLA, a3
 
-    ; determine scroll direction based on speed
-    TST.W   d1
-    BLT     @SCROLL_X_LEFT
-    BGT     @SCROLL_X_RIGHT
-    ; if speed is zero, scrolling depends on direction player is facing
+    ; if speed is high in either direction, determine scroll direction based on speed
+    CMPI.W  #SCROLL_DIR_SPEED, d1
+    BGE     @SCROLL_X_RIGHT
+    CMPI.W  #-SCROLL_DIR_SPEED, d1
+    BLE     @SCROLL_X_LEFT
+    ; if speed is low, scrolling depends on direction player is facing
     BTST.B  #3, (a2)
     BNE     @SCROLL_X_LEFT
 @SCROLL_X_RIGHT:
