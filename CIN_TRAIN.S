@@ -64,36 +64,41 @@ CIN_TRAIN_INIT:
     MOVE.W  (SMALL_STAR_PATTERN), d3
     MOVE.W  (LARGE_STAR_PATTERN), d4
     MOVEQ   #0, d5  ; used as a pattern for no stars
-    MOVEQ   #17, d6  ; used as limit for large star counter
-    MOVEQ   #9, d7  ; used as limit for small star counter
+    MOVEQ   #23, d6 ; used as limit for large star counter
+    MOVEQ   #11, d7 ; used as limit for small star counter
 
 @NIGHT_SKY_LOOP:
+    ; if the small star counter has reached its limit, place a small star
     CMP.W   d7, d1
     BNE     @LARGE_STAR_CHECK
-    ; if d2 is also at the limit, reset it
-    ; CMPI.W  #38, d2
+    ; if the large star counter is also at its limit, reset it
     CMP.B   d6, d2
     BNE     @SMALL_STAR_PLACE
-    MOVEQ   #0, d2
-    BCHG    #2, d6
+    MOVEQ   #0, d2      ; reset large counter
+    BCHG    #2, d6      ; change value of large star limit to vary the spacing
 @SMALL_STAR_PLACE:
-    BCHG    #1, d7
-    MOVEQ   #0, d1
-    MOVE.W  d3, (a0)+
+    BCHG    #3, d7      ; change value of small star limit to vary spacing
+    MOVEQ   #0, d1      ; reset small counter
+    MOVE.W  d3, (a0)+   ; place a small star
+    BCHG    #12, d3     ; toggle small star vertical flip
+    BEQ     @NIGHT_SKY_STEP
+    BCHG    #11, d3     ; every second small star, toggle horizontal flip
     BRA     @NIGHT_SKY_STEP
 @LARGE_STAR_CHECK:
-    ; CMPI.W  #38, d2
-    CMP.B   d6, d2
+    CMP.B   d6, d2      ; check if large star counter has hit the limit
     BNE     @NO_STAR_PLACE
-    MOVEQ   #0, d2
-    BCHG    #1, d6
-    MOVE.W  d4, (a0)+
+    MOVEQ   #0, d2      ; reset large counter
+    BCHG    #1, d6      ; change value of large limit to vary spacing
+    MOVE.W  d4, (a0)+   ; place large star
+    BCHG    #11, d3     ; toggle *small* star horizontal flip
+    BNE     @NIGHT_SKY_STEP
+    BCHG    #12, d3     ; every second large star, toggle small v flip
     BRA     @NIGHT_SKY_STEP
 @NO_STAR_PLACE:
-    MOVE.W  d5, (a0)+
+    MOVE.W  d5, (a0)+   ; place empty tile
 @NIGHT_SKY_STEP:
-    ADDQ.W  #1, d1
-    ADDQ.W  #1, d2
+    ADDQ.W  #1, d1      
+    ADDQ.W  #1, d2      ; increment counters
     DBRA    d0, @NIGHT_SKY_LOOP
 
     ; ** do a row of train tracks **
