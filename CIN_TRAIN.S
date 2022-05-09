@@ -53,17 +53,31 @@ CIN_TRAIN_INIT:
     
     JSR     DMADump
     
+    ; *******************************
+    ; ** STAR GENERATION ALGORITHM **
+    ; -------------------------------
+    ; Place stars in a uniform but
+    ; random-looking arrangement in
+    ; the scroll buffer. Uses two
+    ; patterns - one for a small star
+    ; and one for a large star. The
+    ; small star is in the upper-left
+    ; of the tile so flipping it will
+    ; vary placement further.
+    ; *******************************
+
     ; load SCROLLB contents into screen
     ; buffer, DMA transfer it.
     LEA.L   BUFF_PLANE, a0
-    
+
     ; pattern consists of 30*64 tiles
     MOVE.W  #30*64-1, d0
+
     MOVEQ   #0, d1  ; counter for small stars
     MOVEQ   #0, d2  ; counter for large stars
-    MOVE.W  (SMALL_STAR_PATTERN), d3
-    MOVE.W  (LARGE_STAR_PATTERN), d4
-    MOVEQ   #0, d5  ; used as a pattern for no stars
+    MOVE.W  (SMALL_STAR_PATTERN), d3 ; tile with small star
+    MOVE.W  (LARGE_STAR_PATTERN), d4 ; tile with large star
+    MOVEQ   #0, d5  ; blank pattern for tile with no star
     MOVEQ   #23, d6 ; used as limit for large star counter
     MOVEQ   #11, d7 ; used as limit for small star counter
 
