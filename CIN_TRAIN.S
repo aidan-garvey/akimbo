@@ -6,6 +6,8 @@
 ; intro cinematic.
 ; ****************
 
+NUM_TRAIN_CHARS = $28
+
 ; ======================================
 ; Train Cinematic
 ; --------------------------------------
@@ -156,7 +158,7 @@ CIN_TRAIN_INIT:
     ; load train graphics into VRAM starting
     ; at cell $101 (address $2020)
     MOVE.L  #TRAIN_CHARS, d0
-    MOVE.W  #16*$1D, d1
+    MOVE.W  #CHAR_SIZE_WORDS*NUM_TRAIN_CHARS, d1
     MOVE.W  #$2020, d2
     
     JSR     DMADump

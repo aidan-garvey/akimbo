@@ -19,7 +19,7 @@ TRAIN_PAL:
     DC.W $00AE  ; 7: YELLOW-ORANGE for exterior details
     DC.W $006A  ; 8: LIGHT BROWN for objects like crates - consider 008A if looks bad
     DC.W $0048  ; 9: DARK BROWN for level objects like crates
-    DC.W $0000  ; A: 
+    DC.W $0000  ; A:  
     DC.W $0000  ; B: 
     DC.W $0000  ; C: 
     DC.W $0000  ; D: 
@@ -37,8 +37,11 @@ TRAIN_PAL:
 ; of empty and filler rows above and below the slope of light gray characters 
 
 TRAIN_CHARS:
-; ** TRAIN EXTERIOR **
-    ; 01: EX TOP CORNER (LEFT)
+    ; ***********************
+    ; ** EXTERIOR TRAINCAR **
+    ; ***********************
+
+    ; 01: EXTERIOR TOP CORNER (LEFT)
     DC.B    $01,$11,$11,$11
     DC.B    $43,$33,$33,$33
     DC.B    $43,$44,$44,$44
@@ -47,7 +50,7 @@ TRAIN_CHARS:
     DC.B    $43,$44,$44,$44
     DC.B    $43,$43,$33,$33
     DC.B    $43,$43,$33,$33
-    ; 02: EX ROOF
+    ; 02: EXTERIOR ROOF
     DC.B    $11,$11,$11,$11
     DC.B    $33,$33,$33,$33
     DC.B    $44,$44,$44,$44
@@ -56,7 +59,7 @@ TRAIN_CHARS:
     DC.B    $44,$44,$44,$44
     DC.B    $33,$33,$33,$33
     DC.B    $33,$33,$33,$33
-    ; 03: EX EDGE (LEFT)
+    ; 03: EXTERIOR EDGE (LEFT)
     DC.B    $43,$41,$11,$11
     DC.B    $43,$44,$44,$44
     DC.B    $43,$43,$33,$33
@@ -65,7 +68,7 @@ TRAIN_CHARS:
     DC.B    $43,$44,$44,$44
     DC.B    $43,$43,$33,$33
     DC.B    $43,$43,$33,$33
-    ; 04: EX WALL
+    ; 04: EXTERIOR WALL
     DC.B    $11,$11,$11,$11
     DC.B    $44,$44,$44,$44
     DC.B    $33,$33,$33,$33
@@ -119,6 +122,11 @@ TRAIN_CHARS:
     DC.B    $62,$22,$22,$26
     DC.B    $20,$00,$00,$02
     DC.B    $00,$00,$00,$00
+
+    ; ******************
+    ; ** TRAIN ENGINE **
+    ; ******************
+
     ; 0A: ENGINE TOP LEFT
     DC.B    $01,$11,$11,$11
     DC.B    $43,$33,$33,$33
@@ -263,25 +271,7 @@ TRAIN_CHARS:
     DC.B    $33,$33,$33,$33
     DC.B    $33,$33,$33,$33
     DC.B    $33,$33,$33,$33
-    ; ENGINE SLOPE 7 - SEE 2
-    ;DC.B    $00,$00,$00,$00
-    ;DC.B    $00,$00,$00,$00
-    ;DC.B    $11,$10,$00,$00
-    ;DC.B    $33,$31,$11,$00
-    ;DC.B    $33,$33,$33,$11
-    ;DC.B    $33,$33,$33,$33
-    ;DC.B    $33,$33,$33,$33
-    ;DC.B    $33,$33,$33,$33
-    ; ENGINE SLOPE 8 - SEE 3
-    ;DC.B    $00,$00,$00,$00
-    ;DC.B    $00,$00,$00,$00
-    ;DC.B    $00,$00,$00,$00
-    ;DC.B    $00,$00,$00,$00
-    ;DC.B    $00,$00,$00,$00
-    ;DC.B    $11,$10,$00,$00
-    ;DC.B    $33,$31,$11,$00
-    ;DC.B    $33,$33,$33,$11
-    ; 1A: ENGINE SLOPE 9
+    ; 1A: ENGINE SLOPE 7
     DC.B    $11,$10,$00,$00
     DC.B    $33,$31,$11,$00
     DC.B    $33,$33,$33,$11
@@ -318,6 +308,109 @@ TRAIN_CHARS:
     DC.B    $22,$77,$00,$00
     DC.B    $00,$00,$00,$00
     
+    ; ***********************
+    ; ** INTERIOR TRAINCAR **
+    ; ***********************
+
+    ; 1E: INTERIOR TOP CORNER (LEFT)
+    DC.L    $01111111
+    DC.L    $43333333
+    DC.L    $43444444
+    DC.L    $43466666
+    DC.L    $43466666
+    DC.L    $43466666
+    DC.L    $43466666
+    DC.L    $43466666
+    ; 1F: INTERIOR SIDE DARK (LEFT)
+    DC.L    $43466666
+    DC.L    $43466666
+    DC.L    $43466666
+    DC.L    $43466666
+    DC.L    $43466666
+    DC.L    $43466666
+    DC.L    $43466666
+    DC.L    $43466666
+    ; 20: INTERIOR SIDE DITHERED (LEFT)
+    DC.L    $43456665
+    DC.L    $43466566
+    DC.L    $43465656
+    DC.L    $43456565
+    DC.L    $43465656
+    DC.L    $43456565
+    DC.L    $43465556
+    DC.L    $43455655
+    ; 21: INTERIOR SIDE LIGHT (LEFT)
+    DC.L    $43455555
+    DC.L    $43455555
+    DC.L    $43455555
+    DC.L    $43455555
+    DC.L    $43455555
+    DC.L    $43455555
+    DC.L    $43455555
+    DC.L    $43455555
+    ; 22: INTERIOR ROOF
+    DC.L    $11111111
+    DC.L    $33333333
+    DC.L    $44444444
+    DC.L    $66666666
+    DC.L    $66666666
+    DC.L    $66666666
+    DC.L    $66666666
+    DC.L    $66666666
+    ; 23: INTERIOR BACK WALL DARK
+    DC.L    $66666666
+    DC.L    $66666666
+    DC.L    $66666666
+    DC.L    $66666666
+    DC.L    $66666666
+    DC.L    $66666666
+    DC.L    $66666666
+    DC.L    $66666666
+    ; 24: INTERIOR BACK WALL DITHERED
+    DC.L    $56665666
+    DC.L    $66566656
+    DC.L    $65656565
+    DC.L    $56565656
+    DC.L    $65656565
+    DC.L    $56565656
+    DC.L    $65556555
+    DC.L    $55655565
+    ; 25: INTERIOR BACK WALL LIGHT
+    DC.L    $55555555
+    DC.L    $55555555
+    DC.L    $55555555
+    DC.L    $55555555
+    DC.L    $55555555
+    DC.L    $55555555
+    DC.L    $55555555
+    DC.L    $55555555
+    ; 26: FULL CRATE
+    DC.L    $99999999
+    DC.L    $98888889
+    DC.L    $98888889
+    DC.L    $98888889
+    DC.L    $98888889
+    DC.L    $98888889
+    DC.L    $98888889
+    DC.L    $99999999
+    ; 27: HALF-CRATE (LEFT SIDE)
+    DC.L    $55559999
+    DC.L    $55559888
+    DC.L    $55559888
+    DC.L    $55559888
+    DC.L    $55559888
+    DC.L    $55559888
+    DC.L    $55559888
+    DC.L    $55559999
+    ; 28: SIDE DOOR (LEFT)
+    DC.L    $54555555
+    DC.L    $54555555
+    DC.L    $54555555
+    DC.L    $54555555
+    DC.L    $54555555
+    DC.L    $54555555
+    DC.L    $54555555
+    DC.L    $54555555
 
     
 ; --------
