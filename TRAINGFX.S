@@ -419,7 +419,9 @@ TRAIN_CHARS:
 ; Uses palette 2 (from 0..3)
 ; Uses characters starting with cell $100
 
-; ** TRAIN CAR **
+; ************************
+; ** EXTERIOR TRAIN CAR **
+; ************************
 
 ; top row:
 TRAIN_TOP_LEFT:
@@ -456,11 +458,9 @@ TRAIN_WHEEL_RIGHT:
     DC.W    $4907,$4108,$4908,$4906
     ; followed by blank char
     
+; ******************
 ; ** TRAIN ENGINE **
-
-
-; idea: load SIDE_LEFT and FILL into a data register, load whole
-; thing first, then only the lower word to do more FILL tiles
+; ******************
 
 ; pattern for left side of train
 ENGINE_SIDE_LEFT:
@@ -503,3 +503,58 @@ ENGINE_ROW_8:
     ; 7 blank chars
     ; TRAIN_WHEEL_RIGHT
     ; 1 blank char
+
+; ************************
+; ** INTERIOR TRAIN CAR **
+; ************************
+
+TRAIN_INSIDE_TOP_LEFT:
+    DC.W    $411E
+TRAIN_INSIDE_ROOF:
+    DC.W    $4122   ; x 13
+TRAIN_INSIDE_TOP_RIGHT:
+    DC.W    $491E
+; 1 blank char
+
+    ; repeat this row twice:
+TRAIN_INSIDE_LEFT_DARK:
+    DC.W    $411F
+TRAIN_INSIDE_DARK:
+    DC.W    $4123   ; x 13
+TRAIN_INSIDE_RIGHT_DARK:
+    DC.W    $491F
+; 1 blank char
+
+TRAIN_INSIDE_LEFT_DITHER:
+    DC.W    $4120
+TRAIN_INSIDE_DITHER:
+    DC.W    $4124   ; x 13
+TRAIN_INSIDE_RIGHT_DITHER:
+    DC.W    $4920
+; 1 blank char
+
+TRAIN_INSIDE_LEFT_LIGHT:
+    DC.W    $4121
+TRAIN_INSIDE_LIGHT:
+    DC.W    $4125   ; x 2
+TRAIN_HALF_CRATE_LEFT:
+    DC.W    $4127
+TRAIN_HALF_CRATE_RIGHT:
+    DC.W    $4927
+; TRAIN_INSIDE_LIGHT x 9
+TRAIN_INSIDE_RIGHT_LIGHT:
+    DC.W    $4921
+; 1 BLANK
+
+; TRAIN_INSIDE_LEFT_LIGHT
+; TRAIN_INSIDE_LIGHT x 2
+TRAIN_FULL_CRATE:
+    DC.W    $4126   ; x 2
+; TRAIN_INSIDE_LIGHT x 6
+; TRAIN_HALF_CRATE_LEFT
+; TRAIN_HALF_CRATE_RIGHT
+; TRAIN_FULL_CRATE
+; TRAIN_INSIDE_RIGHT_LIGHT
+; 1 BLANK
+
+; LAST TWO ROWS SAME AS EXTERIOR CAR

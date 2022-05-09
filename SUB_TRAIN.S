@@ -92,6 +92,39 @@ SUB_TRAIN_SCROLL_B:
 
     RTS
 
+; ---------------------------------------------------
+; LOAD COLLISION DATA FOR A TRAINCAR INTO RAM
+; d1.W contains offset from COLL_0 (multiple of $100)
+; a1 points to collision data to copy
+; THRASHED: d0, a0
+SUB_TRAIN_LOAD_COLLISION:
+    ; a0 points to destination
+    LEA.L   COLL_0, a0
+    ADDA.W  d1, a0
+
+    ; d0 will contain the number of lines to copy
+    MOVE.W  (a1), d0    ; get up-facing count
+    MOVE.L  (a1)+, (a0)+; copy up-facing count and offset
+    
+    ADD.W   (a1), d0    ; add down-facing count
+    MOVE.L  (a1)+, (a0)+; copy down-facing count and offset
+
+    ADD.W   (a1), d0    ; add left-facing count
+    MOVE.L  (a1)+, (a0)+; copy down-facing count and offset
+
+    ADD.W   (a1), d0    ; add left-facing count
+    MOVE.L  (a1)+, (a0)+; copy down-facing count and offset
+
+    ; copy each line in a loop
+    ; subtract one from count for the loop
+    SUBQ.W  #1, d0
+@SUB_TRAIN_LOAD_COLLISION_LOOP:
+        MOVE.L  (a1)+, (a0)+
+        MOVE.W  (a1)+, (a0)+
+        DBRA    d0, @SUB_TRAIN_LOAD_COLLISION_LOOP
+    
+    RTS
+
 ; -----------------------------------------------
 ; UPDATE CONTENTS OF PLANE A AND COLLISION BUFFER
 SUB_TRAIN_UPDATE_MAP:
@@ -147,7 +180,7 @@ SUB_TRAIN_UPDATE_MAP:
     ; moving left, MAP_X>>4 is less than multiple of $80
     ; therefore, car is at MAP_X>>4 & 0xFFFF FF80
     ; carPos = MAP_X & 0xFFFF F800
-    ANDI.W  #$F800, d3
+    ANDI.L  #$FFFFF800, d3
     MOVE.W  d2, d1
     
     ; status:
@@ -160,6 +193,14 @@ SUB_TRAIN_UPDATE_MAP:
     CMPI.L  #MAP_X_START, d3
     BLT     @UPDATE_UNLOAD
 
+    ; testing loading an interior car
+    CMPI.B  #$60, d2
+    BNE     @LOAD_EXTERIOR_CAR
+
+    JSR     SUB_TRAIN_LOAD_INT_CAR
+    RTS
+
+@LOAD_EXTERIOR_CAR:
     JSR     SUB_TRAIN_LOAD_CAR
     RTS
     ; BRA     @UPDATE_MAP_RET
@@ -193,7 +234,6 @@ SUB_TRAIN_UNLOAD_CAR:
         DBRA    d4, @UNLOAD_CAR_ROW
 
     ; get plane to update
-    ; PUSH    d0-d1
     PUSH    d1-d2
 
     MOVE.L  #BUFF_PLANE, d0
@@ -203,7 +243,6 @@ SUB_TRAIN_UNLOAD_CAR:
 
     JSR     AddToDMAQueue
 
-    ; POP     d0-d1
     POP d1-d2
 
     ; clear collision data for train car
@@ -338,13 +377,234 @@ SUB_TRAIN_LOAD_CAR:
     LSL.W   #3, d1
     ; a1 points to collision data to copy
     LEA.L   COLL_TRAIN_EXT, a1
-    ; a0 points to destination
-    LEA.L   COLL_0, a0
+
+    JSR     SUB_TRAIN_LOAD_COLLISION
+
+;    ; a0 points to destination
+;    LEA.L   COLL_0, a0
+;    ADDA.W  d1, a0
+;    ; we will copy over $D0 bytes, $34 longwords
+;    MOVEQ   #$33, d0
+;@LOAD_CAR_COLL_LOOP:
+;    MOVE.L  (a1)+, (a0)+
+;    DBRA    d0, @LOAD_CAR_COLL_LOOP
+;
+    RTS
+
+; ---------------------------------------------
+; LOAD A TRAINCAR WITH INTERIOR INTO BUFF_PLANE
+; d1.B contains offset from BUFF_TRAINCAR_1
+SUB_TRAIN_LOAD_INT_CAR:
+    LEA.L   BUFF_TRAINCAR_1, a0
+    ANDI.W  #$00FF, d1
     ADDA.W  d1, a0
-    ; we will copy over $D0 bytes, $34 longwords
-    MOVEQ   #$33, d0
-@LOAD_CAR_COLL_LOOP:
+    LEA.L   TRAIN_INSIDE_TOP_LEFT, a1
+
+    MOVEQ   #$60, d4    ; d4 will hold the offset to jump to the next row
+    MOVEQ   #0, d5      ; d5 will hold all zeroes for transparent tiles
+
+    ; ** FIRST ROW **
+    ; top left
+    MOVE.W  (a1)+, (a0)+
+    ; need 13 of TRAIN_INSIDE_ROOF
+    MOVE.W  (a1), d2
+    SWAP    d2
+    MOVE.W  (a1)+, d2
+
+    ; do 12 in a loop
+    MOVEQ   #5, d0
+@LOAD_INT_ROOF_LOOP:
+        MOVE.L  d2, (a0)+
+        DBRA    d0, @LOAD_INT_ROOF_LOOP
+
+    ; last one
+    MOVE.W  d2, (a0)+
+    ; top right
+    MOVE.W  (a1)+, (a0)+
+    ; blank char
+    MOVE.W  d5, (a0)+
+    ; jump to next row
+    ADDA.W  d4, a0
+
+    ; ** SECOND, THIRD ROWS **
+    ; need to repeat the next row twice:
+    MOVEQ   #1, d3
+    ; save current address so we can return to it for the second row
+    MOVE.L  a1, a2
+@LOAD_INT_DARK_ROW:
+        MOVE.L  a2, a1
+        ; left side
+        MOVE.W  (a1)+, (a0)+
+        ; need 13 of TRAIN_INSIDE_DARK
+        MOVE.W  (a1), d2
+        SWAP    d2
+        MOVE.W  (a1)+, d2
+
+        ; do 12 in a loop
+        MOVEQ   #5, d0
+@LOAD_INT_DARK_LOOP:
+            MOVE.L  d2, (a0)+
+            DBRA    d0, @LOAD_INT_DARK_LOOP
+        
+        ; last one
+        MOVE.W  d2, (a0)+
+        ; right side
+        MOVE.W  (a1)+, (a0)+
+        ; blank char
+        MOVE.W  d5, (a0)+
+
+        ; jump to next row
+        ADDA.W  d4, a0
+
+        BCHG    #0, d3
+        BNE     @LOAD_INT_DARK_ROW
+    
+    ; ** FOURTH ROW **
+    
+    ; left side
+    MOVE.W  (a1)+, (a0)+
+    ; 13 of TRAIN_INSIDE_DITHER
+    MOVE.W  (a1), d2
+    SWAP    d2
+    MOVE.W  (a1)+, d2
+
+    ; 12 in a loop
+    MOVEQ   #5, d0
+@LOAD_INT_DITHER_LOOP:
+        MOVE.L  d2, (a0)+
+        DBRA    d0, @LOAD_INT_DITHER_LOOP
+    
+    ; last one
+    MOVE.W  d2, (a0)+
+    ; right side
+    MOVE.W  (a1)+, (a0)+
+    ; blank char
+    MOVE.W  d5, (a0)+
+
+    ; jump to next row
+    ADDA.W  d4, a0
+
+    ; ** FIFTH ROW **
+    
+    ; left side - save in d3 for next row
+    MOVE.W  (a1)+, d3
+    MOVE.W  d3, (a0)+
+    ; back wall x 2
+    MOVE.W  (a1), (a0)+
+    MOVE.W  (a1)+, (a0)+
+    ; crate spanning two cells
+    MOVE.L  (a1), (a0)+
+    ; need 9 of INSIDE_LIGHT
+    MOVE.W  -(a1), d2
+    SWAP    d2
+    MOVE.W  (a1)+, d2
+
+    ; do 8 in a loop
+    MOVEQ   #3, d0
+@LOAD_INT_LIGHT_LOOP:
+        MOVE.L  d2, (a0)+
+        DBRA    d0, @LOAD_INT_LIGHT_LOOP
+    
+    ; last one
+    MOVE.W  d2, (a0)+
+    ; a1 points at CRATE_LEFT, we want pattern 2 words after that
+    ADDQ.L  #4, a1
+    ; right side
+    MOVE.W  (a1)+, (a0)+
+    ; blank char
+    MOVE.W  d5, (a0)+
+    
+    ; jump to next row
+    ADDA.W  d4, a0
+
+    ; ** SIXTH ROW **
+    ; d2 still contains INSIDE_LIGHT
+    ; d3 contains INSIDE_LEFT_LIGHT
+    ; a1 points to FULL_CRATE
+
+    ; left side
+    MOVE.W  d3, (a0)+
+    ; 2 x INSIDE_LIGHT
+    MOVE.L  d2, (a0)+
+    ; 2 x FULL_CRATE
+    MOVE.W  (a1), (a0)+
+    MOVE.W  (a1), (a0)+
+    ; 6 x INSIDE_LIGHT
+    MOVE.L  d2, (a0)+
+    MOVE.L  d2, (a0)+
+    MOVE.L  d2, (a0)+
+    ; crate spanning two cells
+    LEA.L   TRAIN_HALF_CRATE_LEFT, a2
+    MOVE.L  (a2)+, (a0)+
+    ; full crate
+    MOVE.W  (a1), (a0)+
+    ; right side
+    MOVE.W  (a2), (a0)+
+    ; blank char
+    MOVE.W  d5, (a0)+
+
+    ; jump to next row
+    ADDA.W  d4, a0
+
+    ; ** SEVENTH ROW **
+
+    ; next two rows same as the other train car
+    LEA.L   TRAIN_STRIPES, a1
+    MOVE.W  (a1), d2
+    SWAP    d2
+    MOVE.W  (a1)+, d2
+
+    ; need 15 of stripes
+    ; do 14 in a loop
+    MOVEQ   #6, d0
+@LOAD_INT_CAUTION_LOOP:
+        MOVE.L  d2, (a0)+
+        DBRA    d0, @LOAD_INT_CAUTION_LOOP
+    ; last one
+    MOVE.W  d2, (a0)+
+    ; connector
+    MOVE.W  (a1)+, (a0)+
+
+    ; jump to next row
+    ADDA.W  d4, a0
+
+    ; ** EIGTH ROW **
+
+    ; left wheel
     MOVE.L  (a1)+, (a0)+
-    DBRA    d0, @LOAD_CAR_COLL_LOOP
+    MOVE.L  (a1)+, (a0)+
+    ; 7 blanks
+    MOVE.L  d5, (a0)+
+    MOVE.L  d5, (a0)+
+    MOVE.L  d5, (a0)+
+    MOVE.W  d5, (a0)+
+    ; right wheel
+    MOVE.L  (a1)+, (a0)+
+    MOVE.L  (a1)+, (a0)+
+    ; 1 blank
+    MOVE.W  d5, (a0)
+
+    ; queue a DMA transfer
+    PUSH    d1
+
+    MOVE.L  #BUFF_PLANE, d0
+    MOVE.W  #$800, d1
+    MOVE.W  #VRAM_SCROLLA, d2
+    LEA.L   DMA_QUEUE, a0
+
+    JSR     AddToDMAQueue
+
+    POP     d1
+
+    ; transfer collision data from COLL_TRAIN to RAM
+
+    ; d1 is $00, $20, $40 or $60
+    ; in RAM, collision slots separated by $100
+    LSL.W   #3, d1
+    ; a1 points to collision data to copy
+    LEA.L   COLL_TRAIN_INT, a1
+    
+    JSR     SUB_TRAIN_LOAD_COLLISION
 
     RTS
+
