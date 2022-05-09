@@ -1,5 +1,5 @@
 ; -----------------------------------------
-; SHAKE CAMERA DEPENDING ON ANIMATION TIMER
+; Shake camera depending on animation timer
 ; d0.W contains the timer value
 SUB_TRAIN_SHAKE_CAM:
     ; if timer % 4 == 0, shake cam depending on timer & 4
@@ -19,12 +19,11 @@ SUB_TRAIN_SHAKE_CAM:
             ; shake down
             SUB.L   #$10001, d1
             MOVE.L  d1, (a0)
-            ; BRA     @SHAKE_CAM_RET
 @SHAKE_CAM_RET:
     RTS
 
-; -----------------------------------------------------
-; UPDATE POSITION OF PLAYER SPRITE, DO SHAKY CAM EFFECT
+; --------------------------------
+; Update player's sprite on screen
 SUB_TRAIN_PLAYER_SPRITE:
     LEA.L   PLAYER1_X, a0   ; a0 points to PLAYER1_X
     ; d0 = floor(x pos)
@@ -46,16 +45,16 @@ SUB_TRAIN_PLAYER_SPRITE:
     MOVE.W  d1, (a0)+           ; ypos
     MOVE.W  #$0700, (a0)+       ; 4x2 size, link = 0
     ; get direction flag for HFLIP
-    MOVE.W  (a2), d2
+    MOVE.W  (PLAYER1_FLAGS), d2
     ANDI.W  #$0800, d2          ; hflip
-    ORI.W   #$0001, d2          ; starts at tile 1
-    MOVE.W  d2, (a0)+           ; also sets palette 0
+    ORI.W   #$0001, d2          ; graphics start at char 1
+    MOVE.W  d2, (a0)+           ; also sets palette to 0
     MOVE.W  d0, (a0)            ; xpos
 
     RTS
 
-; -------------------------------------------------------------
-; update rest of HSCROLL_A to match the first entry but slanted
+; ----------------------------------------------
+; Update first entry of HSCROLL_A based on MAP_X
 SUB_TRAIN_SCROLL_A:
     ; HSCROLL_A will be based on MAP_X
     MOVE.L  MAP_X, d0
@@ -67,7 +66,6 @@ SUB_TRAIN_SCROLL_A:
     MOVEQ   #27, d1
 @SUB_TRAIN_SCROLL_A_LOOP:
         MOVE.W  d0, (a0)+
-        ;SUBQ    #1, d0      ; each row will be offset by 1 to slant train
         DBRA    d1, @SUB_TRAIN_SCROLL_A_LOOP
     
     RTS
@@ -75,20 +73,20 @@ SUB_TRAIN_SCROLL_A:
 
 SUB_TRAIN_SCROLL_B:
     ; get current tracks scroll value
-    MOVE.W  BUFF_HSCROLLB+54, d0
+    MOVE.W  (BUFF_HSCROLLB+54), d0
     ; scroll left by 16px
     SUB.W   #16, d0     ; d0 holds tracks scroll value
     MOVE.W  d0, d1
-    LSR.W   #7, d1      ; d1 holds sky scroll value (moves 1/16th the speed of tracks)
+    LSR.W   #7, d1      ; d1 holds sky scroll value (moves 1/128 the speed of tracks)
 
     LEA.L   BUFF_HSCROLLB, a0
 
-    MOVE.W  #25, d2     ; first 26 rows
+    MOVEQ   #25, d2     ; first 26 rows are sky, move at slower speed
 @SCROLL_B_LOOP:
     MOVE.W  d1, (a0)+
     DBRA    d2, @SCROLL_B_LOOP
 
-    ; last 2 rows are tracks
+    ; last 2 rows are tracks, move at faster speed
     MOVE.W  d0, (a0)+
     MOVE.W  d0, (a0)+
 
@@ -107,11 +105,9 @@ SUB_TRAIN_UPDATE_MAP:
 
     MOVE.L  d0, d2
     MOVE.L  d1, d3
-    ASR.L   #4, d2
-    ASR.L   #4, d3
 
-    ANDI.W  #$180, d2
-    ANDI.W  #$180, d3
+    ANDI.W  #$1800, d2
+    ANDI.W  #$1800, d3
     CMP.W   d2, d3
 
     ; return if we haven't crossed a boundary
@@ -121,32 +117,33 @@ SUB_TRAIN_UPDATE_MAP:
 
     ;   d2  -> offset
     ; $0000 -> $60
-    ; $0080 -> $00
-    ; $0100 -> $20
-    ; $0180 -> $40
+    ; $0800 -> $00
+    ; $1000 -> $20
+    ; $1800 -> $40
     
-    ; d2>>2 -> offset
+    ; d2>>6 -> offset
     ; $0000 -> $60
     ; $0020 -> $00
     ; $0040 -> $20
     ; $0060 -> $40
 
-    LSR.W   #2, d2
-    ; d3 = MAP_X
+    LSR.W   #6, d2
+    
+    ; d3 := MAP_X
     MOVE.L  d0, d3
 
     CMP.W   d1, d0
     BLT     @UPDATE_LEFT
-    ; (d2>>2 + $60) & $7F = offset
+    ; (d2>>6 + $60) & $7F = offset
     ADD.W   #$60, d2
     ANDI.W  #$7F, d2
     ; moving right, we know that MAP_X>>4 is greater than or equal to the multiple of $80
     ; so position of car is MAP_X>>4 & 0xFFFF FF80 + $180 (3 cars to the right of the multiple of $80)
     ; carPos = MAP_X & 0xFFFF F800 + $1800
     ADD.L   #$1800, d3
-    ; (and operation done after fallthru)
+    ; (bitwise AND done after fallthru)
 @UPDATE_LEFT:
-    ; d2>>2 = offset, so don't change it
+    ; d2>>6 = offset, so don't change it
     ; moving left, MAP_X>>4 is less than multiple of $80
     ; therefore, car is at MAP_X>>4 & 0xFFFF FF80
     ; carPos = MAP_X & 0xFFFF F800
@@ -162,11 +159,13 @@ SUB_TRAIN_UPDATE_MAP:
     ; for now, train will end at MAP_X_START and go on forever
     CMPI.L  #MAP_X_START, d3
     BLT     @UPDATE_UNLOAD
+
     JSR     SUB_TRAIN_LOAD_CAR
-    BRA     @UPDATE_MAP_RET
+    RTS
+    ; BRA     @UPDATE_MAP_RET
+
 @UPDATE_UNLOAD:
     JSR     SUB_TRAIN_UNLOAD_CAR
-
 @UPDATE_MAP_RET:
     RTS
 
@@ -177,8 +176,8 @@ SUB_TRAIN_UPDATE_MAP:
 SUB_TRAIN_UNLOAD_CAR:
     ; point at desired spot for train car
     LEA.L   BUFF_TRAINCAR_1, a0
-    ANDI.L  #$000000FF, d1
-    ADD.L   d1, a0
+    ANDI.W  #$00FF, d1
+    ADDA.W  d1, a0
 
     MOVEQ   #0, d2
     MOVEQ   #$60, d3
@@ -190,11 +189,12 @@ SUB_TRAIN_UNLOAD_CAR:
 @UNLOAD_CAR_TILE:
             MOVE.L  d2, (a0)+
             DBRA    d5, @UNLOAD_CAR_TILE
-        ADD.L   d3, a0
+        ADDA.W  d3, a0
         DBRA    d4, @UNLOAD_CAR_ROW
 
     ; get plane to update
-    PUSH    d0-d1
+    ; PUSH    d0-d1
+    PUSH    d1-d2
 
     MOVE.L  #BUFF_PLANE, d0
     MOVE.W  #$800, d1
@@ -203,35 +203,23 @@ SUB_TRAIN_UNLOAD_CAR:
 
     JSR     AddToDMAQueue
 
-    POP     d0-d1
+    ; POP     d0-d1
+    POP d1-d2
 
     ; clear collision data for train car
 
-    ; we'll fill the memory with zeroes
-    MOVEQ   #0, d0
+    ; we'll fill the memory with zeroes that are in d2
+    
     ; convert d1 from multiple of $20 to multiple of $100
     LSL.W   #3, d1
     ; get offset in collision data for train car
     LEA.L   COLL_0, a0
     ADDA.W  d1, a0
     ; we'll copy $D0 bytes = $34 longwords
-    MOVE.W  #$33, d2
+    MOVEQ   #$33, d0
 @UNLOAD_CAR_COLL_LOOP:
-    MOVE.L  d0, (a0)+
-    DBRA    d2, @UNLOAD_CAR_COLL_LOOP
-
-;    ; ** clear collision data for train car **
-;    LEA.L   BUFF_COLLISION, a0
-;    LSR.B   #4, d1
-;    ADD.L   d1, a0
-;
-;    ; need 32 rows of zeroes
-;    MOVEQ   #0, d3
-;    MOVEQ   #31, d2
-;@UNLOAD_COLLISION_ROW:
-;        MOVE.W  d3, (a0)
-;        ADDQ    #8, a0
-;        DBRA    d2, @UNLOAD_COLLISION_ROW
+    MOVE.L  d2, (a0)+
+    DBRA    d0, @UNLOAD_CAR_COLL_LOOP
 
     RTS
 
@@ -240,8 +228,10 @@ SUB_TRAIN_UNLOAD_CAR:
 ; d1.B contains offset from BUFF_TRAINCAR_1
 SUB_TRAIN_LOAD_CAR:
     LEA.L   BUFF_TRAINCAR_1, a0
-    ANDI.L  #$000000FF, d1
-    ADD.L   d1, a0
+    ; ANDI.L  #$000000FF, d1
+    ; ADD.L   d1, a0
+    ANDI.W  #$00FF, d1
+    ADDA.W  d1, a0
     LEA.L   TRAIN_TOP_LEFT, a1
 
     MOVEQ   #$60, d4    ; d4 will hold the offset to jump to the next row
@@ -269,7 +259,7 @@ SUB_TRAIN_LOAD_CAR:
     MOVE.W  #0, (a0)+
 
     ; jump to next row
-    ADD.L   d4, a0
+    ADDA.W  d4, a0
 
     ; ** ROWS 2-6 **
     MOVEQ   #4, d5
@@ -292,7 +282,7 @@ SUB_TRAIN_LOAD_CAR:
         MOVE.W  #0, (a0)+
 
         ; jump to next row
-        ADD.L   d4, a0
+        ADDA.W  d4, a0
         DBRA    d5, @LOAD_CAR_MIDROW_LOOP
 
     ; ** ROW 7 **
@@ -312,7 +302,7 @@ SUB_TRAIN_LOAD_CAR:
     MOVE.W  (a1)+, (a0)+
 
     ; jump to next row
-    ADD.L   d4, a0
+    ADDA.W  d4, a0
 
     ; ** EIGHTH ROW **
     ; left wheel
@@ -320,7 +310,7 @@ SUB_TRAIN_LOAD_CAR:
     MOVE.L  (a1)+, (a0)+
 
     MOVEQ   #14, d4
-    ADD.L   d4, a0
+    ADDA.W  d4, a0
 
     ; right wheel
     MOVE.L  (a1)+, (a0)+
@@ -330,7 +320,7 @@ SUB_TRAIN_LOAD_CAR:
     MOVE.W  #0, (a0)+
 
     ; queue a DMA transfer
-    PUSH    d0-d1
+    PUSH    d1
 
     MOVE.L  #BUFF_PLANE, d0
     MOVE.W  #$800, d1
@@ -339,7 +329,7 @@ SUB_TRAIN_LOAD_CAR:
 
     JSR     AddToDMAQueue
 
-    POP     d0-d1
+    POP     d1
 
     ; transfer collision data from COLL_TRAIN to RAM
 
@@ -352,36 +342,9 @@ SUB_TRAIN_LOAD_CAR:
     LEA.L   COLL_0, a0
     ADDA.W  d1, a0
     ; we will copy over $D0 bytes, $34 longwords
-    MOVE.W  #$33, d0
+    MOVEQ   #$33, d0
 @LOAD_CAR_COLL_LOOP:
     MOVE.L  (a1)+, (a0)+
     DBRA    d0, @LOAD_CAR_COLL_LOOP
-
-;    ; load collision data into BUFF_COLLISION
-;    LEA.L   BUFF_COLLISION, a0
-;    LSR.B   #4, d1  ; convert d1 to 0, 2, 4 or 6
-;    ADD.L   d1, a0  ; a0 points to horizontal offset for current train car
-;    
-;    ; we need 24 rows of zeroes
-;    MOVE.W  #0, d2
-;    MOVE.W  #23, d3
-;@COLLISION_EMPTY_LOOP:
-;    MOVE.W  d2, (a0)
-;    ; jump to next row
-;    ADDQ    #8, a0
-;    DBRA    d3, @COLLISION_EMPTY_LOOP
-;
-;    ; we need 6 rows of $FFFE
-;    MOVE.W  #$FFFE, d2
-;    MOVE.W  #5, d3
-;@COLLISION_MAIN_LOOP:
-;    MOVE.W  d2, (a0)
-;    ADDQ    #8, a0
-;    DBRA    d3, @COLLISION_MAIN_LOOP
-;
-;    ; need 2 rows of $FFFF
-;    MOVE.W  #$FFFF, (a0)
-;    ADDQ    #8, a0
-;    MOVE.W  #$FFFF, (a0)
 
     RTS

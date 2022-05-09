@@ -34,7 +34,8 @@ LVL_TRAIN_1:
     ADDQ.L  #1, (GAME_TICK)
 
     ; apply constant scrolling effects
-    ; JSR     SUB_TRAIN_SHAKE_CAM   ; if you want to re-enable shaky cam, GAME_TICK has to be in d0
+    ; JSR     SUB_TRAIN_SHAKE_CAM  ; if you want to
+        ; re-enable shaky cam, GAME_TICK has to be in d0
     JSR     SUB_TRAIN_SCROLL_B
 
     ; handle player movement
